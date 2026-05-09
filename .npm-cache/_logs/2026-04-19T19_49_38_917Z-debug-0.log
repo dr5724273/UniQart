@@ -1,0 +1,36 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.9.0
+2 info using node@v24.14.0
+3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
+4 silly config load:file:D:\UniQart\server\.npmrc
+5 silly config load:file:C:\Users\ASUS\.npmrc
+6 silly config load:file:D:\UniQart\server\etc\npmrc
+7 verbose title npm install
+8 verbose argv "--prefix" "server" "install" "--cache" "D:\\UniQart\\.npm-cache" "--no-audit" "--no-fund"
+9 verbose logfile logs-max:10 dir:D:\UniQart\.npm-cache\_logs\2026-04-19T19_49_38_917Z-
+10 verbose logfile D:\UniQart\.npm-cache\_logs\2026-04-19T19_49_38_917Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
+13 http fetch GET https://registry.npmjs.org/npm attempt 1 failed with EACCES
+14 silly idealTree buildDeps
+15 silly fetch manifest bcryptjs@^2.4.3
+16 silly packumentCache full:https://registry.npmjs.org/bcryptjs cache-miss
+17 http fetch GET https://registry.npmjs.org/bcryptjs attempt 1 failed with EACCES
+18 http fetch GET https://registry.npmjs.org/npm attempt 2 failed with EACCES
+19 http fetch GET https://registry.npmjs.org/bcryptjs attempt 2 failed with EACCES
+20 http fetch GET https://registry.npmjs.org/npm attempt 3 failed with EACCES
+21 http fetch GET https://registry.npmjs.org/bcryptjs attempt 3 failed with EACCES
+22 silly fetch manifest cookie-parser@^1.4.6
+23 silly packumentCache full:https://registry.npmjs.org/cookie-parser cache-miss
+24 http fetch GET https://registry.npmjs.org/cookie-parser attempt 1 failed with EACCES
+25 http fetch GET https://registry.npmjs.org/cookie-parser attempt 2 failed with EACCES
+26 http fetch GET https://registry.npmjs.org/cookie-parser attempt 3 failed with EACCES
+27 silly fetch manifest cors@^2.8.5
+28 silly packumentCache full:https://registry.npmjs.org/cors cache-miss
+29 http fetch GET https://registry.npmjs.org/cors attempt 1 failed with EACCES
+30 http fetch GET https://registry.npmjs.org/cors attempt 2 failed with EACCES
+31 http fetch GET https://registry.npmjs.org/cors attempt 3 failed with EACCES
+32 silly fetch manifest dotenv@^16.4.5
+33 silly packumentCache full:https://registry.npmjs.org/dotenv cache-miss
+34 http fetch GET https://registry.npmjs.org/dotenv attempt 1 failed with EACCES
+35 http fetch GET https://registry.npmjs.org/dotenv attempt 2 failed with EACCES

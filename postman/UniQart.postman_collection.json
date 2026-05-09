@@ -1,0 +1,437 @@
+{
+  "info": {
+    "name": "UniQart API",
+    "_postman_id": "2d72d885-26ed-4f31-8f03-6cbd2b711d45",
+    "description": "UniQart backend REST API (Express + MongoDB). Base URL: {{baseUrl}}",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /api/health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /api/auth/register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test.user@example.com\",\n  \"phone\": \"9999999999\",\n  \"password\": \"Test@12345\",\n  \"role\": \"buyer\"\n}\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/auth/login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@uniqart.app\",\n  \"password\": \"Admin@12345\"\n}\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/auth/logout",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/auth/me",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "GET /api/vehicles (public browse)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/vehicles (lister create; multipart/form-data)",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "vehicleType", "value": "car", "type": "text" },
+                { "key": "brand", "value": "Honda", "type": "text" },
+                { "key": "model", "value": "City", "type": "text" },
+                { "key": "year", "value": "2022", "type": "text" },
+                { "key": "city", "value": "Delhi", "type": "text" },
+                { "key": "pricePerDay", "value": "1500", "type": "text" },
+                { "key": "securityDeposit", "value": "5000", "type": "text" },
+                {
+                  "key": "availability",
+                  "value": "[]",
+                  "type": "text",
+                  "description": "JSON stringified array"
+                },
+                {
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/vehicles/mine (lister)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/mine",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles", "mine"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/vehicles/admin/pending (admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/admin/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles", "admin", "pending"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/vehicles/admin/:id/decision (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\",\n  \"adminNote\": \"Looks good\"\n}\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/admin/:id/decision",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles", "admin", ":id", "decision"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Finance Offers",
+      "item": [
+        {
+          "name": "GET /api/finance-offers (public browse)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/finance-offers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance-offers"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/finance-offers (lister)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totalAmount\": 100000,\n  \"minLoan\": 10000,\n  \"maxLoan\": 50000,\n  \"interestRate\": 12,\n  \"durationMonths\": [3, 6, 12],\n  \"collateralRequired\": \"vehicle\",\n  \"terms\": \"Sample terms (min 10 chars).\"\n}\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/finance-offers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance-offers"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/finance-offers/mine (lister)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/finance-offers/mine",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance-offers", "mine"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/finance-offers/admin/pending (admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/finance-offers/admin/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance-offers", "admin", "pending"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/finance-offers/admin/:id/decision (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\",\n  \"adminNote\": \"OK\"\n}\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/finance-offers/admin/:id/decision",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "finance-offers", "admin", ":id", "decision"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loan Requests",
+      "item": [
+        {
+          "name": "POST /api/loan-requests (buyer; multipart/form-data)",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "financeOfferId", "value": "REPLACE_WITH_APPROVED_OFFER_ID", "type": "text" },
+                { "key": "requestedAmount", "value": "15000", "type": "text" },
+                { "key": "employmentStatus", "value": "Salaried", "type": "text" },
+                { "key": "monthlyIncome", "value": "50000", "type": "text" },
+                { "key": "collateralType", "value": "vehicle", "type": "text" },
+                { "key": "collateralDescription", "value": "Car RC and insurance", "type": "text" },
+                { "key": "documents", "type": "file", "src": [] }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/loan-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "loan-requests"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/loan-requests/mine (buyer)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/loan-requests/mine",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "loan-requests", "mine"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/loan-requests/lender (lister)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/loan-requests/lender",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "loan-requests", "lender"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/loan-requests/admin (admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/loan-requests/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "loan-requests", "admin"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/loan-requests/admin/:id/decision (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\",\n  \"internalNotes\": \"Reviewed\"\n}\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/loan-requests/admin/:id/decision",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "loan-requests", "admin", ":id", "decision"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "POST /api/bookings (buyer)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"REPLACE_WITH_APPROVED_VEHICLE_ID\",\n  \"pickupDate\": \"2026-05-05\",\n  \"returnDate\": \"2026-05-08\",\n  \"address\": \"Some address\"\n}\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/bookings/mine (buyer)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/mine",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "mine"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/bookings/lister (lister)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/lister",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "lister"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/bookings/admin (admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "admin"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/bookings/admin/:id/decision (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\",\n  \"adminNote\": \"Approved\"\n}\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/admin/:id/decision",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "admin", ":id", "decision"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Users",
+      "item": [
+        {
+          "name": "GET /api/admin/users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/admin/users/:id/suspend",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"suspended\": true\n}\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/:id/suspend",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", ":id", "suspend"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/admin/users/:id",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", ":id"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+
