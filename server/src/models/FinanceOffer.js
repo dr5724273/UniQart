@@ -16,6 +16,9 @@ const financeOfferSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+financeOfferSchema.index({ status: 1, createdAt: -1 });
+financeOfferSchema.index({ lenderId: 1, createdAt: -1 });
+
 const FinanceOffer = mongoose.model("FinanceOffer", financeOfferSchema);
 
 module.exports = { FinanceOffer };

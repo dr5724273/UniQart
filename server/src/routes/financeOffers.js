@@ -1,9 +1,10 @@
-﻿const { z } = require("zod");
+const { z } = require("zod");
 const { asyncHandler } = require("../middleware/asyncHandler");
 const { auth } = require("../middleware/auth");
 const { requireRole } = require("../middleware/requireRole");
 const { HttpError } = require("../utils/httpError");
 const { FinanceOffer } = require("../models/FinanceOffer");
+const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
 
 function financeOffersRoutes(env) {
   const router = require("express").Router();
@@ -11,12 +12,19 @@ function financeOffersRoutes(env) {
   // Public browse (approved only)
   router.get(
     "/",
-    asyncHandler(async (_req, res) => {
-      const items = await FinanceOffer.find({ status: "approved" })
-        .sort({ createdAt: -1 })
-        .populate("lenderId", "name")
-        .lean();
-      return res.json({ items });
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { status: "approved" };
+      const [items, total] = await Promise.all([
+        FinanceOffer.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("lenderId", "name")
+          .lean(),
+        FinanceOffer.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
     })
   );
 
@@ -65,8 +73,13 @@ function financeOffersRoutes(env) {
     auth(env),
     requireRole("lister"),
     asyncHandler(async (req, res) => {
-      const items = await FinanceOffer.find({ lenderId: req.user._id }).sort({ createdAt: -1 }).lean();
-      return res.json({ items });
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { lenderId: req.user._id };
+      const [items, total] = await Promise.all([
+        FinanceOffer.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+        FinanceOffer.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
     })
   );
 
@@ -75,12 +88,19 @@ function financeOffersRoutes(env) {
     "/admin/pending",
     auth(env),
     requireRole("admin"),
-    asyncHandler(async (_req, res) => {
-      const items = await FinanceOffer.find({ status: "pending" })
-        .sort({ createdAt: -1 })
-        .populate("lenderId", "name email phone role")
-        .lean();
-      return res.json({ items });
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { status: "pending" };
+      const [items, total] = await Promise.all([
+        FinanceOffer.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("lenderId", "name email phone role")
+          .lean(),
+        FinanceOffer.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
     })
   );
 

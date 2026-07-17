@@ -1,9 +1,10 @@
-﻿const { z } = require("zod");
+const { z } = require("zod");
 const { asyncHandler } = require("../middleware/asyncHandler");
 const { auth } = require("../middleware/auth");
 const { requireRole } = require("../middleware/requireRole");
 const { HttpError } = require("../utils/httpError");
 const { User } = require("../models/User");
+const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
 
 function adminUsersRoutes(env) {
   const router = require("express").Router();
@@ -12,9 +13,13 @@ function adminUsersRoutes(env) {
 
   router.get(
     "/users",
-    asyncHandler(async (_req, res) => {
-      const items = await User.find({}).select("-password").sort({ createdAt: -1 }).lean();
-      return res.json({ items });
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const [items, total] = await Promise.all([
+        User.find({}).select("-password").sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+        User.countDocuments({})
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
     })
   );
 

@@ -1,4 +1,4 @@
-﻿const { z } = require("zod");
+const { z } = require("zod");
 const { asyncHandler } = require("../middleware/asyncHandler");
 const { auth } = require("../middleware/auth");
 const { requireRole } = require("../middleware/requireRole");
@@ -6,6 +6,7 @@ const { HttpError } = require("../utils/httpError");
 const { LoanRequest } = require("../models/LoanRequest");
 const { FinanceOffer } = require("../models/FinanceOffer");
 const { createUpload } = require("../config/upload");
+const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
 
 function loanRequestsRoutes(env) {
   const router = require("express").Router();
@@ -63,14 +64,21 @@ function loanRequestsRoutes(env) {
     auth(env),
     requireRole("buyer"),
     asyncHandler(async (req, res) => {
-      const items = await LoanRequest.find({ buyerId: req.user._id })
-        .sort({ createdAt: -1 })
-        .populate({
-          path: "financeOfferId",
-          populate: { path: "lenderId", select: "name" }
-        })
-        .lean();
-      return res.json({ items });
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { buyerId: req.user._id };
+      const [items, total] = await Promise.all([
+        LoanRequest.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate({
+            path: "financeOfferId",
+            populate: { path: "lenderId", select: "name" }
+          })
+          .lean(),
+        LoanRequest.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
     })
   );
 
@@ -80,12 +88,19 @@ function loanRequestsRoutes(env) {
     auth(env),
     requireRole("lister"),
     asyncHandler(async (req, res) => {
-      const items = await LoanRequest.find({ lenderId: req.user._id })
-        .sort({ createdAt: -1 })
-        .populate("buyerId", "name email phone")
-        .populate("financeOfferId")
-        .lean();
-      return res.json({ items });
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { lenderId: req.user._id };
+      const [items, total] = await Promise.all([
+        LoanRequest.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("buyerId", "name email phone")
+          .populate("financeOfferId")
+          .lean(),
+        LoanRequest.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
     })
   );
 
@@ -94,14 +109,20 @@ function loanRequestsRoutes(env) {
     "/admin",
     auth(env),
     requireRole("admin"),
-    asyncHandler(async (_req, res) => {
-      const items = await LoanRequest.find({})
-        .sort({ createdAt: -1 })
-        .populate("buyerId", "name email phone")
-        .populate("lenderId", "name email phone")
-        .populate("financeOfferId")
-        .lean();
-      return res.json({ items });
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const [items, total] = await Promise.all([
+        LoanRequest.find({})
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("buyerId", "name email phone")
+          .populate("lenderId", "name email phone")
+          .populate("financeOfferId")
+          .lean(),
+        LoanRequest.countDocuments({})
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
     })
   );
 

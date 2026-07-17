@@ -23,6 +23,10 @@ const vehicleListingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+vehicleListingSchema.index({ status: 1, createdAt: -1 });
+vehicleListingSchema.index({ ownerId: 1, createdAt: -1 });
+vehicleListingSchema.index({ status: 1, city: 1, vehicleType: 1, pricePerDay: 1, createdAt: -1 });
+
 const VehicleListing = mongoose.model("VehicleListing", vehicleListingSchema);
 
 module.exports = { VehicleListing };

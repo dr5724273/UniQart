@@ -1,10 +1,11 @@
-﻿const { z } = require("zod");
+const { z } = require("zod");
 const { asyncHandler } = require("../middleware/asyncHandler");
 const { auth } = require("../middleware/auth");
 const { requireRole } = require("../middleware/requireRole");
 const { HttpError } = require("../utils/httpError");
 const { VehicleListing } = require("../models/VehicleListing");
 const { createUpload } = require("../config/upload");
+const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
 
 function vehiclesRoutes(env) {
   const router = require("express").Router();
@@ -35,8 +36,12 @@ function vehiclesRoutes(env) {
         if (query.data.maxPrice != null) filter.pricePerDay.$lte = query.data.maxPrice;
       }
 
-      const items = await VehicleListing.find(filter).sort({ createdAt: -1 }).lean();
-      return res.json({ items });
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const [items, total] = await Promise.all([
+        VehicleListing.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+        VehicleListing.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
     })
   );
 
@@ -89,8 +94,13 @@ function vehiclesRoutes(env) {
     auth(env),
     requireRole("lister"),
     asyncHandler(async (req, res) => {
-      const items = await VehicleListing.find({ ownerId: req.user._id }).sort({ createdAt: -1 }).lean();
-      return res.json({ items });
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { ownerId: req.user._id };
+      const [items, total] = await Promise.all([
+        VehicleListing.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+        VehicleListing.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
     })
   );
 
@@ -99,12 +109,19 @@ function vehiclesRoutes(env) {
     "/admin/pending",
     auth(env),
     requireRole("admin"),
-    asyncHandler(async (_req, res) => {
-      const items = await VehicleListing.find({ status: "pending" })
-        .sort({ createdAt: -1 })
-        .populate("ownerId", "name email phone role")
-        .lean();
-      return res.json({ items });
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { status: "pending" };
+      const [items, total] = await Promise.all([
+        VehicleListing.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("ownerId", "name email phone role")
+          .lean(),
+        VehicleListing.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
     })
   );
 

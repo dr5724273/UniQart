@@ -14,6 +14,11 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+bookingSchema.index({ buyerId: 1, createdAt: -1 });
+bookingSchema.index({ listerId: 1, createdAt: -1 });
+bookingSchema.index({ createdAt: -1 });
+bookingSchema.index({ vehicleId: 1, status: 1, pickupDate: 1, returnDate: 1 });
+
 const Booking = mongoose.model("Booking", bookingSchema);
 
 module.exports = { Booking };

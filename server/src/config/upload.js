@@ -1,7 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
-const { nanoid } = require("nanoid");
+const { randomUUID } = require("crypto");
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
@@ -15,7 +15,7 @@ function createUpload(uploadRoot, subdir) {
     destination: (_req, _file, cb) => cb(null, targetDir),
     filename: (_req, file, cb) => {
       const ext = path.extname(file.originalname || "").toLowerCase();
-      cb(null, `${Date.now()}-${nanoid(10)}${ext}`);
+      cb(null, `${Date.now()}-${randomUUID()}${ext}`);
     }
   });
 
