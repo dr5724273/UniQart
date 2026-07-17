@@ -1,10 +1,11 @@
-﻿const path = require("path");
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const { errorHandler } = require("./middleware/errorHandler");
+const { authLimiter, bookingLimiter, financeLimiter, generalLimiter } = require("./middleware/rateLimiter");
 const { authRoutes } = require("./routes/auth");
 const { vehiclesRoutes } = require("./routes/vehicles");
 const { financeOffersRoutes } = require("./routes/financeOffers");
@@ -15,6 +16,7 @@ const { adminUsersRoutes } = require("./routes/adminUsers");
 function createApp(env) {
   const app = express();
 
+  app.set("trust proxy", 1);
   app.use(helmet());
   if (env.HTTP_LOG !== "off") {
     app.use(
@@ -67,11 +69,12 @@ function createApp(env) {
 
   app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
-  app.use("/api/auth", authRoutes(env));
+  app.use("/api", generalLimiter);
+  app.use("/api/auth", authLimiter, authRoutes(env));
   app.use("/api/vehicles", vehiclesRoutes(env));
-  app.use("/api/finance-offers", financeOffersRoutes(env));
-  app.use("/api/bookings", bookingsRoutes(env));
-  app.use("/api/loan-requests", loanRequestsRoutes(env));
+  app.use("/api/finance-offers", financeLimiter, financeOffersRoutes(env));
+  app.use("/api/bookings", bookingLimiter, bookingsRoutes(env));
+  app.use("/api/loan-requests", financeLimiter, loanRequestsRoutes(env));
   app.use("/api/admin", adminUsersRoutes(env));
 
   // 404 (keep before errorHandler)

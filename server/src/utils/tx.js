@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 // Per-key mutex to ensure concurrent requests for the same vehicle serialize cleanly in Node.js
 // preventing phantom reads under MongoDB snapshot isolation or standalone deployments.
 const vehicleLocks = new Map();
+const financeLocks = new Map();
 
 async function withVehicleLock(vehicleId, callback) {
   const key = vehicleId.toString();
@@ -20,6 +21,26 @@ async function withVehicleLock(vehicleId, callback) {
     release();
     if (vehicleLocks.get(key) === prior.then(() => current)) {
       vehicleLocks.delete(key);
+    }
+  }
+}
+
+async function withFinanceLock(offerId, callback) {
+  const key = offerId.toString();
+  const prior = financeLocks.get(key) || Promise.resolve();
+  let release;
+  const current = new Promise((resolve) => {
+    release = resolve;
+  });
+  financeLocks.set(key, prior.then(() => current));
+
+  try {
+    await prior;
+    return await callback();
+  } finally {
+    release();
+    if (financeLocks.get(key) === prior.then(() => current)) {
+      financeLocks.delete(key);
     }
   }
 }
@@ -56,4 +77,4 @@ async function runInTransaction(callback) {
   }
 }
 
-module.exports = { runInTransaction, withVehicleLock };
+module.exports = { runInTransaction, withVehicleLock, withFinanceLock };

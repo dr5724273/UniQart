@@ -7,6 +7,8 @@ const { LoanRequest } = require("../models/LoanRequest");
 const { FinanceOffer } = require("../models/FinanceOffer");
 const { createUpload } = require("../config/upload");
 const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
+const { uploadLimiter } = require("../middleware/rateLimiter");
+const { runInTransaction, withFinanceLock } = require("../utils/tx");
 
 function loanRequestsRoutes(env) {
   const router = require("express").Router();
@@ -17,6 +19,7 @@ function loanRequestsRoutes(env) {
     "/",
     auth(env),
     requireRole("buyer"),
+    uploadLimiter,
     upload.array("documents", 8),
     asyncHandler(async (req, res) => {
       const body = z
@@ -140,13 +143,45 @@ function loanRequestsRoutes(env) {
         .safeParse(req.body);
       if (!params.success || !body.success) throw new HttpError(400, "Invalid input");
 
-      const status = body.data.action === "approve" ? "approved" : "rejected";
-      const item = await LoanRequest.findByIdAndUpdate(
-        params.data.id,
-        { status, internalNotes: body.data.internalNotes || "" },
-        { new: true }
-      ).lean();
-      if (!item) throw new HttpError(404, "Not found");
+      const item = await runInTransaction(async (session) => {
+        const target = await LoanRequest.findById(params.data.id).session(session).lean();
+        if (!target) throw new HttpError(404, "Not found");
+
+        return await withFinanceLock(target.financeOfferId, async () => {
+          if (body.data.action === "approve" && target.status !== "approved") {
+            const offer = await FinanceOffer.findOneAndUpdate(
+              { _id: target.financeOfferId },
+              { $set: { updatedAt: new Date() } },
+              { new: true, session }
+            ).lean();
+            if (!offer || offer.status !== "approved") {
+              throw new HttpError(404, "Finance offer not available");
+            }
+
+            const approvedLoans = await LoanRequest.find({
+              financeOfferId: target.financeOfferId,
+              status: "approved",
+              _id: { $ne: target._id }
+            }).session(session).lean();
+
+            const allocatedAmount = approvedLoans.reduce((sum, loan) => sum + loan.requestedAmount, 0);
+            const availableAmount = offer.totalAmount - allocatedAmount;
+            if (target.requestedAmount > availableAmount) {
+              throw new HttpError(409, "Insufficient funds available in the Finance Offer pool");
+            }
+          }
+
+          const status = body.data.action === "approve" ? "approved" : "rejected";
+          const updated = await LoanRequest.findByIdAndUpdate(
+            params.data.id,
+            { status, internalNotes: body.data.internalNotes || "" },
+            { new: true, session }
+          ).lean();
+          if (!updated) throw new HttpError(404, "Not found");
+          return updated;
+        });
+      });
+
       return res.json({ item });
     })
   );

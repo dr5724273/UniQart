@@ -40,17 +40,30 @@ function financeOffersRoutes(env) {
           minLoan: z.coerce.number().positive(),
           maxLoan: z.coerce.number().positive(),
           interestRate: z.coerce.number().min(0).max(60),
-          durationMonths: z.array(z.coerce.number()).min(1),
+          durationMonths: z.array(z.coerce.number().int()).min(1),
           collateralRequired: z.enum(["vehicle", "property", "gold", "other"]),
-          terms: z.string().min(10).max(3000)
+          terms: z.string().trim().min(10).max(3000)
         })
         .safeParse(req.body);
       if (!body.success) throw new HttpError(400, "Invalid input");
-      if (body.data.minLoan > body.data.maxLoan) throw new HttpError(400, "Min loan cannot exceed max loan");
+
+      if (body.data.minLoan > body.data.maxLoan) {
+        throw new HttpError(400, "Min loan cannot exceed max loan");
+      }
+      if (body.data.minLoan > body.data.totalAmount) {
+        throw new HttpError(400, "Min loan cannot exceed total amount");
+      }
+      if (body.data.maxLoan > body.data.totalAmount) {
+        throw new HttpError(400, "Max loan cannot exceed total amount");
+      }
 
       const allowedDurations = new Set([3, 6, 12]);
-      const durations = body.data.durationMonths.filter((d) => allowedDurations.has(d));
-      if (durations.length === 0) throw new HttpError(400, "Invalid duration options");
+      const invalidDurations = body.data.durationMonths.filter((d) => !allowedDurations.has(d));
+      if (invalidDurations.length > 0) {
+        throw new HttpError(400, "Invalid duration options: allowed durations are 3, 6, and 12 months");
+      }
+
+      const durations = Array.from(new Set(body.data.durationMonths)).sort((a, b) => a - b);
 
       const item = await FinanceOffer.create({
         lenderId: req.user._id,
@@ -58,7 +71,7 @@ function financeOffersRoutes(env) {
         minLoan: body.data.minLoan,
         maxLoan: body.data.maxLoan,
         interestRate: body.data.interestRate,
-        durationMonths: Array.from(new Set(durations)),
+        durationMonths: durations,
         collateralRequired: body.data.collateralRequired,
         terms: body.data.terms
       });
