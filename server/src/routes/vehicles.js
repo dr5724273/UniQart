@@ -6,6 +6,7 @@ const { HttpError } = require("../utils/httpError");
 const { VehicleListing } = require("../models/VehicleListing");
 const { createUpload } = require("../config/upload");
 const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
+const { escapeRegExp } = require("../utils/regex");
 
 function vehiclesRoutes(env) {
   const router = require("express").Router();
@@ -17,9 +18,9 @@ function vehiclesRoutes(env) {
     asyncHandler(async (req, res) => {
       const query = z
         .object({
-          city: z.string().optional(),
+          city: z.string().max(100).optional(),
           vehicleType: z.enum(["car", "bike"]).optional(),
-          brand: z.string().optional(),
+          brand: z.string().max(100).optional(),
           minPrice: z.coerce.number().optional(),
           maxPrice: z.coerce.number().optional()
         })
@@ -29,7 +30,7 @@ function vehiclesRoutes(env) {
       const filter = { status: "approved" };
       if (query.data.city) filter.city = query.data.city;
       if (query.data.vehicleType) filter.vehicleType = query.data.vehicleType;
-      if (query.data.brand) filter.brand = new RegExp(`^${query.data.brand}`, "i");
+      if (query.data.brand) filter.brand = new RegExp(`^${escapeRegExp(query.data.brand)}`, "i");
       if (query.data.minPrice != null || query.data.maxPrice != null) {
         filter.pricePerDay = {};
         if (query.data.minPrice != null) filter.pricePerDay.$gte = query.data.minPrice;
