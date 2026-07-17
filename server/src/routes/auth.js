@@ -72,11 +72,13 @@ function authRoutes(env) {
         expiresIn: env.JWT_EXPIRES_IN
       });
 
-      res.cookie("token", token, {
+      const cookieOptions = {
         httpOnly: true,
         secure: env.NODE_ENV === "production",
-        sameSite: "lax"
-      });
+        sameSite: env.NODE_ENV === "production" ? "none" : "lax"
+      };
+
+      res.cookie("token", token, cookieOptions);
 
       return res.json({ user: toPublicUser(user) });
     })
@@ -85,7 +87,13 @@ function authRoutes(env) {
   router.post(
     "/logout",
     asyncHandler(async (_req, res) => {
-      res.clearCookie("token");
+      const cookieOptions = {
+        httpOnly: true,
+        secure: env.NODE_ENV === "production",
+        sameSite: env.NODE_ENV === "production" ? "none" : "lax"
+      };
+
+      res.clearCookie("token", cookieOptions);
       return res.json({ ok: true });
     })
   );
