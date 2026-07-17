@@ -5,10 +5,11 @@ const { User } = require("./models/User");
 let ioInstance = null;
 
 function initSocket(httpServer, env) {
-  const corsOrigins = env.CORS_ORIGIN ? env.CORS_ORIGIN.split(",").map((s) => s.trim()) : [];
   const io = new Server(httpServer, {
     cors: {
-      origin: corsOrigins.length ? corsOrigins : "*",
+      origin: (origin, callback) => {
+        callback(null, origin || true);
+      },
       credentials: true
     }
   });
@@ -53,10 +54,10 @@ function initSocket(httpServer, env) {
   });
 
   io.on("connection", (socket) => {
-    // Client can authenticate or re-authenticate after connecting (e.g. after login/token refresh)
+    // Client can authenticate or re-authenticate after connecting
     socket.on("authenticate", async (data) => {
       try {
-        let token = data?.token;
+        let token = data?.token || socket.handshake.auth?.token || socket.handshake.headers?.authorization;
         if (token && typeof token === "string" && token.startsWith("Bearer ")) {
           token = token.slice(7).trim();
         }

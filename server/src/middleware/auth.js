@@ -31,5 +31,5 @@ function auth(env) {
   };
 }
 
-module.exports = { auth };
+module.exports = { auth, getTokenFromRequest };
 

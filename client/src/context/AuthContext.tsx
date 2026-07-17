@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { apiFetch } from "@/lib/api";
@@ -21,10 +21,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function refresh() {
     try {
-      const res = await apiFetch<{ user: User }>("/api/auth/me");
+      const res = await apiFetch<{ user: User; token?: string }>("/api/auth/me");
       setUser(res.user);
+      if (typeof window !== "undefined" && res.token) {
+        localStorage.setItem("uniqart_token", res.token);
+      }
     } catch {
       setUser(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("uniqart_token");
+      }
     } finally {
       setLoading(false);
     }
@@ -35,11 +41,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function login(email: string, password: string) {
-    const res = await apiFetch<{ user: User }>("/api/auth/login", {
+    const res = await apiFetch<{ user: User; token?: string }>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password })
     });
     setUser(res.user);
+    if (typeof window !== "undefined" && res.token) {
+      localStorage.setItem("uniqart_token", res.token);
+    }
   }
 
   async function register(payload: { name: string; email: string; phone: string; password: string; role: Exclude<Role, "admin"> }) {
@@ -51,6 +60,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function logout() {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("uniqart_token");
+    }
     await apiFetch("/api/auth/logout", { method: "POST" });
     setUser(null);
   }

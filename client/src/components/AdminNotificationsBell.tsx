@@ -27,14 +27,17 @@ export function AdminNotificationsBell() {
   useEffect(() => {
     if (!user || user.role !== "admin") return;
 
+    const token = typeof window !== "undefined" ? localStorage.getItem("uniqart_token") || undefined : undefined;
     const socketUrl = API_BASE || window.location.origin;
     const socket: Socket = io(socketUrl, {
+      auth: { token },
       withCredentials: true,
       transports: ["websocket", "polling"]
     });
 
     socket.on("connect", () => {
-      socket.emit("authenticate", {});
+      console.log("socket connected");
+      socket.emit("authenticate", { token });
     });
 
     socket.on("admin_notification", (notif: AdminNotification) => {

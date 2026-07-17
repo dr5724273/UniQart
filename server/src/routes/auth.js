@@ -4,7 +4,7 @@ const { z } = require("zod");
 const { asyncHandler } = require("../middleware/asyncHandler");
 const { HttpError } = require("../utils/httpError");
 const { User } = require("../models/User");
-const { auth } = require("../middleware/auth");
+const { auth, getTokenFromRequest } = require("../middleware/auth");
 
 function toPublicUser(user) {
   return {
@@ -80,7 +80,7 @@ function authRoutes(env) {
 
       res.cookie("token", token, cookieOptions);
 
-      return res.json({ user: toPublicUser(user) });
+      return res.json({ user: toPublicUser(user), token });
     })
   );
 
@@ -102,7 +102,7 @@ function authRoutes(env) {
     "/me",
     auth(env),
     asyncHandler(async (req, res) => {
-      return res.json({ user: req.user });
+      return res.json({ user: req.user, token: getTokenFromRequest(req) });
     })
   );
 
