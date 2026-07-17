@@ -7,6 +7,7 @@ const { LoanRequest } = require("../models/LoanRequest");
 const { FinanceOffer } = require("../models/FinanceOffer");
 const { createUpload } = require("../config/upload");
 const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
+const { uploadLimiter } = require("../middleware/rateLimiter");
 
 function loanRequestsRoutes(env) {
   const router = require("express").Router();
@@ -17,6 +18,7 @@ function loanRequestsRoutes(env) {
     "/",
     auth(env),
     requireRole("buyer"),
+    uploadLimiter,
     upload.array("documents", 8),
     asyncHandler(async (req, res) => {
       const body = z

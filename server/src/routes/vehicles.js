@@ -7,6 +7,7 @@ const { VehicleListing } = require("../models/VehicleListing");
 const { createUpload } = require("../config/upload");
 const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
 const { escapeRegExp } = require("../utils/regex");
+const { uploadLimiter } = require("../middleware/rateLimiter");
 
 function vehiclesRoutes(env) {
   const router = require("express").Router();
@@ -51,6 +52,7 @@ function vehiclesRoutes(env) {
     "/",
     auth(env),
     requireRole("lister"),
+    uploadLimiter,
     upload.array("images", 8),
     asyncHandler(async (req, res) => {
       const body = z
