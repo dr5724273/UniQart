@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiFetchFormData } from "@/lib/api";
 import type { FinanceOffer } from "@/lib/types";
 import { Button, Card, Input, Select, Textarea } from "@/components/ui";
 
@@ -18,6 +18,22 @@ export function BuyerBrowseFinanceOffers() {
   const [collateralType, setCollateralType] = useState<"vehicle" | "property" | "gold" | "other">("gold");
   const [collateralDescription, setCollateralDescription] = useState("Gold jewellery");
   const [documents, setDocuments] = useState<FileList | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const activeOffer = items.find((i) => i._id === applyOfferId);
+  const reqNum = Number(requestedAmount);
+  const incNum = Number(monthlyIncome);
+  const rangeValid =
+    !activeOffer ||
+    (!isNaN(reqNum) && reqNum >= activeOffer.minLoan && reqNum <= activeOffer.maxLoan);
+  const formValid =
+    rangeValid &&
+    !isNaN(reqNum) &&
+    reqNum > 0 &&
+    !isNaN(incNum) &&
+    incNum > 0 &&
+    employmentStatus.trim().length > 0 &&
+    collateralDescription.trim().length > 0;
 
   async function load() {
     setLoading(true);
@@ -38,25 +54,30 @@ export function BuyerBrowseFinanceOffers() {
 
   async function applyLoan(e: React.FormEvent) {
     e.preventDefault();
-    if (!applyOfferId) return;
+    if (!applyOfferId || submitting || !formValid) return;
+    setSubmitting(true);
+    setError(null);
 
-    const form = new FormData();
-    form.append("financeOfferId", applyOfferId);
-    form.append("requestedAmount", requestedAmount);
-    form.append("durationMonths", durationMonths);
-    form.append("employmentStatus", employmentStatus);
-    form.append("monthlyIncome", monthlyIncome);
-    form.append("collateralType", collateralType);
-    form.append("collateralDescription", collateralDescription);
-    if (documents) Array.from(documents).forEach((f) => form.append("documents", f));
+    try {
+      const form = new FormData();
+      form.append("financeOfferId", applyOfferId);
+      form.append("requestedAmount", requestedAmount);
+      form.append("durationMonths", durationMonths);
+      form.append("employmentStatus", employmentStatus);
+      form.append("monthlyIncome", monthlyIncome);
+      form.append("collateralType", collateralType);
+      form.append("collateralDescription", collateralDescription);
+      if (documents) Array.from(documents).forEach((f) => form.append("documents", f));
 
-    const base = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-    const res = await fetch(`${base}/api/loan-requests`, { method: "POST", body: form, credentials: "include" });
-    const json = await res.json().catch(() => null);
-    if (!res.ok) throw new Error(json?.error || "Apply failed");
+      await apiFetchFormData("/api/loan-requests", form);
 
-    setApplyOfferId(null);
-    alert("Loan request submitted. Await admin approval.");
+      setApplyOfferId(null);
+      alert("Loan request submitted successfully! Awaiting admin approval.");
+    } catch (err: any) {
+      setError(err?.message || "Apply failed");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -68,7 +89,7 @@ export function BuyerBrowseFinanceOffers() {
         </Button>
       </div>
 
-      {error ? <div className="text-sm font-semibold text-red-600">{error}</div> : null}
+      {error ? <div className="text-sm font-semibold text-red-600" role="alert">{error}</div> : null}
       {loading ? <div className="text-sm text-slate-600">Loading…</div> : null}
 
       {items.map((o: any) => (
@@ -84,20 +105,23 @@ export function BuyerBrowseFinanceOffers() {
           </div>
 
           {applyOfferId === o._id ? (
-            <form className="mt-4 grid gap-3" onSubmit={(e) => void applyLoan(e)}>
-              <div className="grid grid-cols-2 gap-3">
+            <form className="mt-4 grid gap-3" onSubmit={applyLoan} aria-label="Apply for loan form">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div>
-                  <div className="mb-1 text-xs font-semibold text-slate-600">Requested Amount</div>
-                  <Input value={requestedAmount} onChange={(e) => setRequestedAmount(e.target.value)} required />
+                  <label htmlFor={`req-amount-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Requested Amount (₹{o.minLoan} – ₹{o.maxLoan})</label>
+                  <Input id={`req-amount-${o._id}`} type="number" min={o.minLoan} max={o.maxLoan} value={requestedAmount} onChange={(e) => setRequestedAmount(e.target.value)} required />
                 </div>
                 <div>
-                  <div className="mb-1 text-xs font-semibold text-slate-600">Monthly Income</div>
-                  <Input value={monthlyIncome} onChange={(e) => setMonthlyIncome(e.target.value)} required />
+                  <label htmlFor={`monthly-inc-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Monthly Income</label>
+                  <Input id={`monthly-inc-${o._id}`} type="number" min="1" value={monthlyIncome} onChange={(e) => setMonthlyIncome(e.target.value)} required />
                 </div>
               </div>
+              {!rangeValid && !isNaN(reqNum) ? (
+                <div className="text-xs font-semibold text-red-600">Requested amount must be between ₹{o.minLoan} and ₹{o.maxLoan}.</div>
+              ) : null}
               <div>
-                <div className="mb-1 text-xs font-semibold text-slate-600">Loan Duration</div>
-                <Select value={durationMonths} onChange={(e) => setDurationMonths(e.target.value)}>
+                <label htmlFor={`duration-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Loan Duration</label>
+                <Select id={`duration-${o._id}`} value={durationMonths} onChange={(e) => setDurationMonths(e.target.value)}>
                   {(Array.isArray(o.durationMonths) ? o.durationMonths : [3, 6, 12]).map((m: number) => (
                     <option key={m} value={String(m)}>
                       {m >= 12 ? `${m / 12} year${m === 12 ? "" : "s"}` : `${m} months`}
@@ -106,12 +130,12 @@ export function BuyerBrowseFinanceOffers() {
                 </Select>
               </div>
               <div>
-                <div className="mb-1 text-xs font-semibold text-slate-600">Employment Status</div>
-                <Input value={employmentStatus} onChange={(e) => setEmploymentStatus(e.target.value)} required />
+                <label htmlFor={`emp-status-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Employment Status</label>
+                <Input id={`emp-status-${o._id}`} value={employmentStatus} onChange={(e) => setEmploymentStatus(e.target.value)} required />
               </div>
               <div>
-                <div className="mb-1 text-xs font-semibold text-slate-600">Collateral Type</div>
-                <Select value={collateralType} onChange={(e) => setCollateralType(e.target.value as any)}>
+                <label htmlFor={`col-type-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Collateral Type</label>
+                <Select id={`col-type-${o._id}`} value={collateralType} onChange={(e) => setCollateralType(e.target.value as any)}>
                   <option value="vehicle">Vehicle</option>
                   <option value="property">Property</option>
                   <option value="gold">Gold</option>
@@ -119,15 +143,17 @@ export function BuyerBrowseFinanceOffers() {
                 </Select>
               </div>
               <div>
-                <div className="mb-1 text-xs font-semibold text-slate-600">Collateral Description</div>
-                <Textarea value={collateralDescription} onChange={(e) => setCollateralDescription(e.target.value)} rows={3} required />
+                <label htmlFor={`col-desc-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Collateral Description</label>
+                <Textarea id={`col-desc-${o._id}`} value={collateralDescription} onChange={(e) => setCollateralDescription(e.target.value)} rows={3} required />
               </div>
               <div>
-                <div className="mb-1 text-xs font-semibold text-slate-600">Upload Documents</div>
-                <input className="block w-full text-sm" type="file" multiple onChange={(e) => setDocuments(e.target.files)} />
+                <label htmlFor={`docs-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Upload Documents</label>
+                <input id={`docs-${o._id}`} className="block w-full text-sm" type="file" multiple onChange={(e) => setDocuments(e.target.files)} />
               </div>
               <div className="flex gap-2">
-                <Button type="submit">Submit Loan Request</Button>
+                <Button type="submit" disabled={submitting || !formValid} aria-disabled={submitting || !formValid}>
+                  {submitting ? "Submitting…" : "Submit Loan Request"}
+                </Button>
                 <Button variant="secondary" type="button" onClick={() => setApplyOfferId(null)}>
                   Cancel
                 </Button>
@@ -137,7 +163,7 @@ export function BuyerBrowseFinanceOffers() {
         </Card>
       ))}
 
-      {!loading && items.length === 0 ? <div className="text-sm text-slate-600">No offers found.</div> : null}
+      {!loading && items.length === 0 ? <div className="text-sm text-slate-600">No finance offers found.</div> : null}
     </div>
   );
 }

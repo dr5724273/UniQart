@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,8 +16,16 @@ export default function BuyerSignUp() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const phoneValid = /^\+?[0-9\s-]{7,15}$/.test(phone);
+  const formValid = name.trim().length > 0 && emailValid && phoneValid && password.length >= 8;
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!formValid) {
+      setError("Please ensure name, valid email, valid phone, and password (min 8 chars) are entered.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -35,25 +43,25 @@ export default function BuyerSignUp() {
       <Card className="mx-auto max-w-md">
         <h1 className="text-xl font-extrabold">Buyer Sign Up</h1>
         <p className="mt-1 text-sm text-slate-600">Phone number is mandatory.</p>
-        <form className="mt-6 grid gap-3" onSubmit={onSubmit}>
+        <form className="mt-6 grid gap-3" onSubmit={onSubmit} aria-label="Buyer sign up form">
           <div>
-            <div className="mb-1 text-xs font-semibold text-slate-600">Full name</div>
-            <Input value={name} onChange={(e) => setName(e.target.value)} required />
+            <label htmlFor="buyer-name" className="mb-1 block text-xs font-semibold text-slate-600">Full name</label>
+            <Input id="buyer-name" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div>
-            <div className="mb-1 text-xs font-semibold text-slate-600">Email</div>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+            <label htmlFor="buyer-signup-email" className="mb-1 block text-xs font-semibold text-slate-600">Email</label>
+            <Input id="buyer-signup-email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
           </div>
           <div>
-            <div className="mb-1 text-xs font-semibold text-slate-600">Phone</div>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} required />
+            <label htmlFor="buyer-phone" className="mb-1 block text-xs font-semibold text-slate-600">Phone</label>
+            <Input id="buyer-phone" value={phone} onChange={(e) => setPhone(e.target.value)} required />
           </div>
           <div>
-            <div className="mb-1 text-xs font-semibold text-slate-600">Password</div>
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+            <label htmlFor="buyer-signup-password" className="mb-1 block text-xs font-semibold text-slate-600">Password</label>
+            <Input id="buyer-signup-password" value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
           </div>
-          {error ? <div className="text-sm font-semibold text-red-600">{error}</div> : null}
-          <Button disabled={busy} type="submit">
+          {error ? <div className="text-sm font-semibold text-red-600" role="alert">{error}</div> : null}
+          <Button disabled={busy || !formValid} type="submit" aria-disabled={busy || !formValid}>
             {busy ? "Creating…" : "Create account"}
           </Button>
         </form>

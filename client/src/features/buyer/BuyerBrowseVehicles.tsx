@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
@@ -20,8 +20,18 @@ export function BuyerBrowseVehicles() {
   const [pickupDate, setPickupDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
   const [address, setAddress] = useState("");
+  const [submittingBooking, setSubmittingBooking] = useState(false);
+
+  const pickupValid = Boolean(pickupDate);
+  const returnValid = Boolean(returnDate);
+  const dateRangeValid = !pickupValid || !returnValid || new Date(pickupDate) < new Date(returnDate);
+  const bookingValid = pickupValid && returnValid && dateRangeValid && address.trim().length > 0;
 
   async function load() {
+    if (minPrice && maxPrice && Number(minPrice) > Number(maxPrice)) {
+      setError("Min price cannot exceed Max price.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -47,8 +57,9 @@ export function BuyerBrowseVehicles() {
 
   async function bookNow(e: React.FormEvent) {
     e.preventDefault();
-    if (!bookingVehicleId) return;
+    if (!bookingVehicleId || submittingBooking || !bookingValid) return;
     setError(null);
+    setSubmittingBooking(true);
 
     try {
       await apiFetch("/api/bookings", {
@@ -59,9 +70,11 @@ export function BuyerBrowseVehicles() {
       setPickupDate("");
       setReturnDate("");
       setAddress("");
-      alert("Booking submitted. Await admin approval.");
+      alert("Booking submitted successfully! Awaiting admin approval.");
     } catch (err: any) {
       setError(err?.message || "Booking failed");
+    } finally {
+      setSubmittingBooking(false);
     }
   }
 
@@ -71,29 +84,29 @@ export function BuyerBrowseVehicles() {
         <h2 className="text-lg font-extrabold">Filters</h2>
         <div className="mt-4 grid gap-3">
           <div>
-            <div className="mb-1 text-xs font-semibold text-slate-600">City</div>
-            <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Bengaluru" />
+            <label htmlFor="filter-city" className="mb-1 block text-xs font-semibold text-slate-600">City</label>
+            <Input id="filter-city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Bengaluru" />
           </div>
           <div>
-            <div className="mb-1 text-xs font-semibold text-slate-600">Vehicle Type</div>
-            <Select value={vehicleType} onChange={(e) => setVehicleType(e.target.value as any)}>
+            <label htmlFor="filter-type" className="mb-1 block text-xs font-semibold text-slate-600">Vehicle Type</label>
+            <Select id="filter-type" value={vehicleType} onChange={(e) => setVehicleType(e.target.value as any)}>
               <option value="">All</option>
               <option value="car">Car</option>
               <option value="bike">Bike</option>
             </Select>
           </div>
           <div>
-            <div className="mb-1 text-xs font-semibold text-slate-600">Brand</div>
-            <Input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Hyundai" />
+            <label htmlFor="filter-brand" className="mb-1 block text-xs font-semibold text-slate-600">Brand</label>
+            <Input id="filter-brand" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Hyundai" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
-              <div className="mb-1 text-xs font-semibold text-slate-600">Min ₹/day</div>
-              <Input value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
+              <label htmlFor="filter-min" className="mb-1 block text-xs font-semibold text-slate-600">Min ₹/day</label>
+              <Input id="filter-min" type="number" min="0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
             </div>
             <div>
-              <div className="mb-1 text-xs font-semibold text-slate-600">Max ₹/day</div>
-              <Input value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
+              <label htmlFor="filter-max" className="mb-1 block text-xs font-semibold text-slate-600">Max ₹/day</label>
+              <Input id="filter-max" type="number" min="0" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
             </div>
           </div>
           <Button onClick={() => void load()} variant="secondary" type="button">
@@ -110,7 +123,7 @@ export function BuyerBrowseVehicles() {
           </Button>
         </div>
 
-        {error ? <div className="text-sm font-semibold text-red-600">{error}</div> : null}
+        {error ? <div className="text-sm font-semibold text-red-600" role="alert">{error}</div> : null}
         {loading ? <div className="text-sm text-slate-600">Loading…</div> : null}
 
         {items.map((v) => (
@@ -127,23 +140,28 @@ export function BuyerBrowseVehicles() {
             </div>
 
             {bookingVehicleId === v._id ? (
-              <form className="mt-4 grid gap-3" onSubmit={(e) => void bookNow(e)}>
-                <div className="grid grid-cols-2 gap-3">
+              <form className="mt-4 grid gap-3" onSubmit={bookNow} aria-label="Book vehicle form">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div>
-                    <div className="mb-1 text-xs font-semibold text-slate-600">Pickup date</div>
-                    <Input value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} type="date" required />
+                    <label htmlFor={`pickup-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Pickup date</label>
+                    <Input id={`pickup-${v._id}`} value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} type="date" required />
                   </div>
                   <div>
-                    <div className="mb-1 text-xs font-semibold text-slate-600">Return date</div>
-                    <Input value={returnDate} onChange={(e) => setReturnDate(e.target.value)} type="date" required />
+                    <label htmlFor={`return-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Return date</label>
+                    <Input id={`return-${v._id}`} value={returnDate} onChange={(e) => setReturnDate(e.target.value)} type="date" required />
                   </div>
                 </div>
+                {!dateRangeValid && pickupValid && returnValid ? (
+                  <div className="text-xs font-semibold text-red-600">Return date must be after pickup date.</div>
+                ) : null}
                 <div>
-                  <div className="mb-1 text-xs font-semibold text-slate-600">Address</div>
-                  <Textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={3} required />
+                  <label htmlFor={`address-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Address</label>
+                  <Textarea id={`address-${v._id}`} value={address} onChange={(e) => setAddress(e.target.value)} rows={3} required />
                 </div>
                 <div className="flex gap-2">
-                  <Button type="submit">Submit Booking</Button>
+                  <Button type="submit" disabled={submittingBooking || !bookingValid} aria-disabled={submittingBooking || !bookingValid}>
+                    {submittingBooking ? "Submitting…" : "Submit Booking"}
+                  </Button>
                   <Button variant="secondary" type="button" onClick={() => setBookingVehicleId(null)}>
                     Cancel
                   </Button>

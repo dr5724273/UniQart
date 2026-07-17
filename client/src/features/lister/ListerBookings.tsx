@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
@@ -37,7 +37,7 @@ export function ListerBookings() {
         </Button>
       </div>
 
-      {error ? <div className="mt-3 text-sm font-semibold text-red-600">{error}</div> : null}
+      {error ? <div className="mt-3 text-sm font-semibold text-red-600" role="alert">{error}</div> : null}
       {loading ? <div className="mt-4 text-sm text-slate-600">Loading…</div> : null}
 
       <div className="mt-4 grid gap-3">
@@ -54,7 +54,7 @@ export function ListerBookings() {
             {b.adminNote ? <div className="mt-2 text-sm text-slate-600">Admin note: {b.adminNote}</div> : null}
           </div>
         ))}
-        {!loading && items.length === 0 ? <div className="text-sm text-slate-600">No bookings yet.</div> : null}
+        {!loading && !error && items.length === 0 ? <div className="text-sm text-slate-600">No bookings yet</div> : null}
       </div>
     </Card>
   );

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,8 +14,15 @@ export default function BuyerSignIn() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const formValid = emailValid && password.length >= 8;
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!formValid) {
+      setError("Please enter a valid email and password (min 8 chars).");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -33,17 +40,17 @@ export default function BuyerSignIn() {
       <Card className="mx-auto max-w-md">
         <h1 className="text-xl font-extrabold">Buyer Sign In</h1>
         <p className="mt-1 text-sm text-slate-600">Rent vehicles or apply for loans.</p>
-        <form className="mt-6 grid gap-3" onSubmit={onSubmit}>
+        <form className="mt-6 grid gap-3" onSubmit={onSubmit} aria-label="Buyer sign in form">
           <div>
-            <div className="mb-1 text-xs font-semibold text-slate-600">Email</div>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+            <label htmlFor="buyer-email" className="mb-1 block text-xs font-semibold text-slate-600">Email</label>
+            <Input id="buyer-email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
           </div>
           <div>
-            <div className="mb-1 text-xs font-semibold text-slate-600">Password</div>
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+            <label htmlFor="buyer-password" className="mb-1 block text-xs font-semibold text-slate-600">Password</label>
+            <Input id="buyer-password" value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
           </div>
-          {error ? <div className="text-sm font-semibold text-red-600">{error}</div> : null}
-          <Button disabled={busy} type="submit">
+          {error ? <div className="text-sm font-semibold text-red-600" role="alert">{error}</div> : null}
+          <Button disabled={busy || !formValid} type="submit" aria-disabled={busy || !formValid}>
             {busy ? "Signing in…" : "Sign In"}
           </Button>
         </form>

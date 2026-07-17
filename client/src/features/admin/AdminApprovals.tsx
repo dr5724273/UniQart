@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
@@ -8,13 +8,21 @@ import { StatusPill } from "@/components/StatusPill";
 export function AdminApproveVehicles() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<Record<string, string>>({});
+  const [deciding, setDeciding] = useState<Record<string, boolean>>({});
 
   async function load() {
     setLoading(true);
-    const res = await apiFetch<{ items: any[] }>("/api/vehicles/admin/pending");
-    setItems(res.items);
-    setLoading(false);
+    setError(null);
+    try {
+      const res = await apiFetch<{ items: any[] }>("/api/vehicles/admin/pending");
+      setItems(res.items);
+    } catch (err: any) {
+      setError(err?.message || "Failed to load pending vehicles");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -22,11 +30,21 @@ export function AdminApproveVehicles() {
   }, []);
 
   async function decide(id: string, action: "approve" | "reject") {
-    await apiFetch(`/api/vehicles/admin/${id}/decision`, {
-      method: "POST",
-      body: JSON.stringify({ action, adminNote: note[id] || "" })
-    });
-    await load();
+    if (action === "reject" && !window.confirm("Are you sure you want to reject this vehicle listing?")) return;
+    if (deciding[id]) return;
+    setDeciding((s) => ({ ...s, [id]: true }));
+    setError(null);
+    try {
+      await apiFetch(`/api/vehicles/admin/${id}/decision`, {
+        method: "POST",
+        body: JSON.stringify({ action, adminNote: note[id] || "" })
+      });
+      await load();
+    } catch (err: any) {
+      setError(err?.message || "Decision failed");
+    } finally {
+      setDeciding((s) => ({ ...s, [id]: false }));
+    }
   }
 
   return (
@@ -38,6 +56,7 @@ export function AdminApproveVehicles() {
         </Button>
       </div>
 
+      {error ? <div className="mt-3 text-sm font-semibold text-red-600" role="alert">{error}</div> : null}
       {loading ? <div className="mt-4 text-sm text-slate-600">Loading…</div> : null}
 
       <div className="mt-4 grid gap-4">
@@ -56,20 +75,22 @@ export function AdminApproveVehicles() {
             </div>
 
             <div className="mt-3">
-              <div className="mb-1 text-xs font-semibold text-slate-600">Admin note</div>
-              <Textarea rows={2} value={note[v._id] || ""} onChange={(e) => setNote((s) => ({ ...s, [v._id]: e.target.value }))} />
+              <label htmlFor={`note-veh-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Admin note</label>
+              <Textarea id={`note-veh-${v._id}`} rows={2} value={note[v._id] || ""} onChange={(e) => setNote((s) => ({ ...s, [v._id]: e.target.value }))} />
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button onClick={() => void decide(v._id, "approve")}>Approve</Button>
-              <Button variant="secondary" onClick={() => void decide(v._id, "reject")}>
-                Reject
+              <Button onClick={() => void decide(v._id, "approve")} disabled={deciding[v._id]} aria-disabled={deciding[v._id]}>
+                {deciding[v._id] ? "Processing…" : "Approve"}
+              </Button>
+              <Button variant="secondary" onClick={() => void decide(v._id, "reject")} disabled={deciding[v._id]} aria-disabled={deciding[v._id]}>
+                {deciding[v._id] ? "Processing…" : "Reject"}
               </Button>
             </div>
           </div>
         ))}
 
-        {!loading && items.length === 0 ? <div className="text-sm text-slate-600">No pending listings.</div> : null}
+        {!loading && !error && items.length === 0 ? <div className="text-sm text-slate-600">No vehicles found.</div> : null}
       </div>
     </Card>
   );
@@ -78,13 +99,21 @@ export function AdminApproveVehicles() {
 export function AdminApproveOffers() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<Record<string, string>>({});
+  const [deciding, setDeciding] = useState<Record<string, boolean>>({});
 
   async function load() {
     setLoading(true);
-    const res = await apiFetch<{ items: any[] }>("/api/finance-offers/admin/pending");
-    setItems(res.items);
-    setLoading(false);
+    setError(null);
+    try {
+      const res = await apiFetch<{ items: any[] }>("/api/finance-offers/admin/pending");
+      setItems(res.items);
+    } catch (err: any) {
+      setError(err?.message || "Failed to load pending finance offers");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -92,11 +121,21 @@ export function AdminApproveOffers() {
   }, []);
 
   async function decide(id: string, action: "approve" | "reject") {
-    await apiFetch(`/api/finance-offers/admin/${id}/decision`, {
-      method: "POST",
-      body: JSON.stringify({ action, adminNote: note[id] || "" })
-    });
-    await load();
+    if (action === "reject" && !window.confirm("Are you sure you want to reject this finance offer?")) return;
+    if (deciding[id]) return;
+    setDeciding((s) => ({ ...s, [id]: true }));
+    setError(null);
+    try {
+      await apiFetch(`/api/finance-offers/admin/${id}/decision`, {
+        method: "POST",
+        body: JSON.stringify({ action, adminNote: note[id] || "" })
+      });
+      await load();
+    } catch (err: any) {
+      setError(err?.message || "Decision failed");
+    } finally {
+      setDeciding((s) => ({ ...s, [id]: false }));
+    }
   }
 
   return (
@@ -108,6 +147,7 @@ export function AdminApproveOffers() {
         </Button>
       </div>
 
+      {error ? <div className="mt-3 text-sm font-semibold text-red-600" role="alert">{error}</div> : null}
       {loading ? <div className="mt-4 text-sm text-slate-600">Loading…</div> : null}
 
       <div className="mt-4 grid gap-4">
@@ -127,20 +167,22 @@ export function AdminApproveOffers() {
             </div>
 
             <div className="mt-3">
-              <div className="mb-1 text-xs font-semibold text-slate-600">Admin note</div>
-              <Textarea rows={2} value={note[o._id] || ""} onChange={(e) => setNote((s) => ({ ...s, [o._id]: e.target.value }))} />
+              <label htmlFor={`note-off-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Admin note</label>
+              <Textarea id={`note-off-${o._id}`} rows={2} value={note[o._id] || ""} onChange={(e) => setNote((s) => ({ ...s, [o._id]: e.target.value }))} />
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button onClick={() => void decide(o._id, "approve")}>Approve</Button>
-              <Button variant="secondary" onClick={() => void decide(o._id, "reject")}>
-                Reject
+              <Button onClick={() => void decide(o._id, "approve")} disabled={deciding[o._id]} aria-disabled={deciding[o._id]}>
+                {deciding[o._id] ? "Processing…" : "Approve"}
+              </Button>
+              <Button variant="secondary" onClick={() => void decide(o._id, "reject")} disabled={deciding[o._id]} aria-disabled={deciding[o._id]}>
+                {deciding[o._id] ? "Processing…" : "Reject"}
               </Button>
             </div>
           </div>
         ))}
 
-        {!loading && items.length === 0 ? <div className="text-sm text-slate-600">No pending offers.</div> : null}
+        {!loading && !error && items.length === 0 ? <div className="text-sm text-slate-600">No finance offers</div> : null}
       </div>
     </Card>
   );

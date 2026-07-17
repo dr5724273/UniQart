@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useMode } from "@/context/ModeContext";
@@ -31,7 +31,14 @@ export function Navbar() {
           ) : (
             <div className="flex items-center gap-2">
               <span className="hidden text-sm font-semibold text-slate-700 sm:inline">{user.name}</span>
-              <Button variant="secondary" onClick={() => void logout()}>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to logout?")) {
+                    void logout();
+                  }
+                }}
+              >
                 Logout
               </Button>
             </div>
