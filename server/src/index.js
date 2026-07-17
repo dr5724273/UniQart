@@ -1,9 +1,11 @@
-﻿require("dotenv").config();
+require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
+const http = require("http");
 const { loadEnv } = require("./config/env");
 const { connectDb } = require("./config/db");
 const { createApp } = require("./app");
+const { initSocket } = require("./socket");
 
 async function main() {
   const env = loadEnv();
@@ -12,7 +14,10 @@ async function main() {
   await connectDb(env.MONGODB_URI);
 
   const app = createApp(env);
-  app.listen(env.PORT, () => {
+  const httpServer = http.createServer(app);
+  initSocket(httpServer, env);
+
+  httpServer.listen(env.PORT, () => {
     // eslint-disable-next-line no-console
     console.log(`UniQart API listening on http://localhost:${env.PORT}`);
   });

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMode } from "@/context/ModeContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button, ModeToggle } from "@/components/ui";
+import { AdminNotificationsBell } from "@/components/AdminNotificationsBell";
 
 export function Navbar() {
   const { mode, setMode } = useMode();
@@ -30,6 +31,7 @@ export function Navbar() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
+              <AdminNotificationsBell />
               <span className="hidden text-sm font-semibold text-slate-700 sm:inline">{user.name}</span>
               <Button
                 variant="secondary"

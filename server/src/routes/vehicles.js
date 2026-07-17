@@ -8,6 +8,7 @@ const { createUpload } = require("../config/upload");
 const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
 const { escapeRegExp } = require("../utils/regex");
 const { uploadLimiter } = require("../middleware/rateLimiter");
+const { emitAdminNotification } = require("../socket");
 
 function vehiclesRoutes(env) {
   const router = require("express").Router();
@@ -85,6 +86,15 @@ function vehiclesRoutes(env) {
         securityDeposit: body.data.securityDeposit,
         images,
         availability: Array.isArray(body.data.availability) ? body.data.availability : []
+      });
+
+      emitAdminNotification({
+        id: `notif-veh-${listing._id}-${Date.now()}`,
+        type: "vehicle_listing",
+        title: "New Vehicle Listing",
+        message: `${listing.brand} ${listing.model} (${listing.year}) submitted for approval.`,
+        url: "/admin/dashboard?tab=vehicles",
+        createdAt: new Date().toISOString()
       });
 
       return res.status(201).json({ item: listing });

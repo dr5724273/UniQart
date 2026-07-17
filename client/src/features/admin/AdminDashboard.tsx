@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 import { AdminApproveVehicles, AdminApproveOffers } from "@/features/admin/AdminApprovals";
 import { AdminManageBookings, AdminManageLoans } from "@/features/admin/AdminOperations";
@@ -9,7 +10,23 @@ import { AdminManageUsers } from "@/features/admin/AdminUsers";
 type Tab = "vehicles" | "offers" | "bookings" | "loans" | "users";
 
 export function AdminDashboard() {
-  const [tab, setTab] = useState<Tab>("vehicles");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tabParam = (searchParams?.get("tab") as Tab) || "vehicles";
+  const [tab, setTab] = useState<Tab>(
+    ["vehicles", "offers", "bookings", "loans", "users"].includes(tabParam) ? tabParam : "vehicles"
+  );
+
+  useEffect(() => {
+    if (tabParam && ["vehicles", "offers", "bookings", "loans", "users"].includes(tabParam)) {
+      setTab(tabParam);
+    }
+  }, [tabParam]);
+
+  function handleTabChange(key: Tab) {
+    setTab(key);
+    router.push(`/admin/dashboard?tab=${key}`);
+  }
 
   return (
     <main className="container-page py-8">
@@ -26,7 +43,7 @@ export function AdminDashboard() {
             ["users", "User Management"]
           ] as const
         ).map(([key, label]) => (
-          <Button key={key} variant={tab === key ? "primary" : "secondary"} onClick={() => setTab(key)}>
+          <Button key={key} variant={tab === key ? "primary" : "secondary"} onClick={() => handleTabChange(key)}>
             {label}
           </Button>
         ))}

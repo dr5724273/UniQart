@@ -9,6 +9,7 @@ const { createUpload } = require("../config/upload");
 const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
 const { uploadLimiter } = require("../middleware/rateLimiter");
 const { runInTransaction, withFinanceLock } = require("../utils/tx");
+const { emitAdminNotification } = require("../socket");
 
 function loanRequestsRoutes(env) {
   const router = require("express").Router();
@@ -55,6 +56,15 @@ function loanRequestsRoutes(env) {
         collateralType: body.data.collateralType,
         collateralDescription: body.data.collateralDescription,
         documents
+      });
+
+      emitAdminNotification({
+        id: `notif-loan-${item._id}-${Date.now()}`,
+        type: "loan_request",
+        title: "New Loan Request",
+        message: `Loan request of ₹${item.requestedAmount} submitted for approval.`,
+        url: "/admin/dashboard?tab=loans",
+        createdAt: new Date().toISOString()
       });
 
       return res.status(201).json({ item });

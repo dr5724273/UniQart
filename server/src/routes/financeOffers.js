@@ -5,6 +5,7 @@ const { requireRole } = require("../middleware/requireRole");
 const { HttpError } = require("../utils/httpError");
 const { FinanceOffer } = require("../models/FinanceOffer");
 const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
+const { emitAdminNotification } = require("../socket");
 
 function financeOffersRoutes(env) {
   const router = require("express").Router();
@@ -74,6 +75,15 @@ function financeOffersRoutes(env) {
         durationMonths: durations,
         collateralRequired: body.data.collateralRequired,
         terms: body.data.terms
+      });
+
+      emitAdminNotification({
+        id: `notif-off-${item._id}-${Date.now()}`,
+        type: "finance_offer",
+        title: "New Finance Offer",
+        message: `Finance offer ₹${item.minLoan}–₹${item.maxLoan} (${item.interestRate}%) submitted for approval.`,
+        url: "/admin/dashboard?tab=offers",
+        createdAt: new Date().toISOString()
       });
 
       return res.status(201).json({ item });
