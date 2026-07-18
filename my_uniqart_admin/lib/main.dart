@@ -13,9 +13,16 @@ import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/widgets/authenticated_shell.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().initialize();
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+  } catch (e) {
+    debugPrint('Startup FlutterBinding error: $e');
+  }
   runApp(const MyUniQartAdminApp());
+  
+  NotificationService().initialize().catchError((e) {
+    debugPrint('NotificationService startup error: $e');
+  });
 }
 
 class MyUniQartAdminApp extends StatelessWidget {

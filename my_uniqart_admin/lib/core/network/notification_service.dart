@@ -77,33 +77,45 @@ class NotificationService {
 
     final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     if (androidPlugin != null) {
-      await androidPlugin.createNotificationChannel(androidChannel);
-      await androidPlugin.requestNotificationsPermission();
+      try {
+        await androidPlugin.createNotificationChannel(androidChannel).timeout(const Duration(seconds: 5));
+        await androidPlugin.requestNotificationsPermission().timeout(const Duration(seconds: 8));
+      } catch (e) {
+        debugPrint('Android local notifications permission/channel error or timeout: $e');
+      }
     }
 
     try {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp().timeout(const Duration(seconds: 10));
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
       final messaging = FirebaseMessaging.instance;
-      await messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+      try {
+        await messaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        ).timeout(const Duration(seconds: 8));
+      } catch (e) {
+        debugPrint('FCM requestPermission error or timeout: $e');
+      }
 
       try {
-        await messaging.subscribeToTopic('admin');
+        await messaging.subscribeToTopic('admin').timeout(const Duration(seconds: 5));
       } catch (_) {}
 
       // Handle terminated app launch from FCM notification click
-      final initialMessage = await messaging.getInitialMessage();
-      if (initialMessage != null && initialMessage.data.isNotEmpty) {
-        final type = initialMessage.data['type']?.toString() ?? '';
-        final url = initialMessage.data['url']?.toString() ?? '';
-        if (type.isNotEmpty || url.isNotEmpty) {
-          pendingNavigationPayload = {'type': type, 'url': url};
+      try {
+        final initialMessage = await messaging.getInitialMessage().timeout(const Duration(seconds: 5));
+        if (initialMessage != null && initialMessage.data.isNotEmpty) {
+          final type = initialMessage.data['type']?.toString() ?? '';
+          final url = initialMessage.data['url']?.toString() ?? '';
+          if (type.isNotEmpty || url.isNotEmpty) {
+            pendingNavigationPayload = {'type': type, 'url': url};
+          }
         }
+      } catch (e) {
+        debugPrint('FCM getInitialMessage error or timeout: $e');
       }
 
       // Handle background app open from FCM notification click
@@ -140,13 +152,14 @@ class NotificationService {
 
   Future<void> registerAndSendTokenToBackend(String authToken) async {
     try {
-      if (!authToken.startsWith('Bearer ')) return;
+      if (authToken.isEmpty) return;
+      final headerAuth = authToken.startsWith('Bearer ') ? authToken : 'Bearer $authToken';
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null && token.isNotEmpty) {
         _fcmToken = token;
         final dio = Dio(BaseOptions(
           baseUrl: ApiConstants.baseUrl,
-          headers: {'Authorization': authToken},
+          headers: {'Authorization': headerAuth},
         ));
         await dio.post('/auth/fcm-token', data: {'token': token});
         debugPrint('FCM token sent to backend: $token');
@@ -158,10 +171,11 @@ class NotificationService {
 
   Future<void> unregisterTokenFromBackend(String authToken) async {
     try {
-      if (_fcmToken == null || _fcmToken!.isEmpty) return;
+      if (_fcmToken == null || _fcmToken!.isEmpty || authToken.isEmpty) return;
+      final headerAuth = authToken.startsWith('Bearer ') ? authToken : 'Bearer $authToken';
       final dio = Dio(BaseOptions(
         baseUrl: ApiConstants.baseUrl,
-        headers: {'Authorization': authToken},
+        headers: {'Authorization': headerAuth},
       ));
       await dio.delete('/auth/fcm-token', data: {'token': _fcmToken});
       _fcmToken = null;

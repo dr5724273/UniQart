@@ -106,6 +106,34 @@ function authRoutes(env) {
     })
   );
 
+  router.post(
+    "/fcm-token",
+    auth(env),
+    asyncHandler(async (req, res) => {
+      const body = z.object({ token: z.string().min(1) }).safeParse(req.body);
+      if (!body.success) throw new HttpError(400, "Invalid FCM token");
+
+      await User.findByIdAndUpdate(req.user._id, {
+        $addToSet: { fcmTokens: body.data.token }
+      });
+      return res.json({ ok: true });
+    })
+  );
+
+  router.delete(
+    "/fcm-token",
+    auth(env),
+    asyncHandler(async (req, res) => {
+      const body = z.object({ token: z.string().min(1) }).safeParse(req.body);
+      if (body.success) {
+        await User.findByIdAndUpdate(req.user._id, {
+          $pull: { fcmTokens: body.data.token }
+        });
+      }
+      return res.json({ ok: true });
+    })
+  );
+
   return router;
 }
 

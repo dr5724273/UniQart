@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, required: true, trim: true },
     password: { type: String, required: true },
     role: { type: String, required: true, enum: ["buyer", "lister", "admin"] },
-    status: { type: String, required: true, enum: ["active", "suspended"], default: "active" }
+    status: { type: String, required: true, enum: ["active", "suspended"], default: "active" },
+    fcmTokens: [{ type: String, trim: true }]
   },
   { timestamps: true }
 );
