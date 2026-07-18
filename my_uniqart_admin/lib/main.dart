@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/dashboard_provider.dart';
+import 'presentation/providers/vehicle_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/login/login_screen.dart';
 
@@ -17,6 +19,8 @@ class MyUniQartAdminApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()..checkAuthStatus()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => VehicleProvider()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
