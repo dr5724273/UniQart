@@ -38,6 +38,17 @@ class ApiClient {
         },
       ),
     );
+    _dio.interceptors.add(
+      LogInterceptor(
+        request: true,
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: true,
+        responseBody: true,
+        error: true,
+        logPrint: (obj) => debugPrint(obj.toString()),
+      ),
+    );
   }
 
   Dio get dio => _dio;

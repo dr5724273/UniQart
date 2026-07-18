@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../core/network/socket_service.dart';
+import '../../core/network/notification_service.dart';
 import '../../core/storage/token_storage.dart';
 import '../../domain/entities/admin_notification_entity.dart';
 
@@ -26,13 +27,23 @@ class NotificationProvider extends ChangeNotifier {
     if (token == null || token.isEmpty) return;
 
     _socketService.connect(token);
+    NotificationService().registerAndSendTokenToBackend(token);
+
     _subscription?.cancel();
     _subscription = _socketService.notificationStream.listen((notif) {
+      if (NotificationService().isDuplicateNotification(notif.id)) return;
       if (!_seenIds.contains(notif.id)) {
         _seenIds.add(notif.id);
         _notifications.insert(0, notif);
         _latestInAppNotification = notif;
         notifyListeners();
+
+        NotificationService().showSystemNotification(
+          title: notif.title,
+          body: notif.message,
+          id: notif.id.hashCode,
+          payload: '{"type":"${notif.type}","url":"${notif.url}"}',
+        );
       }
     });
   }
@@ -62,6 +73,11 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   void disconnect() {
+    _tokenStorage.getToken().then((token) {
+      if (token != null && token.isNotEmpty) {
+        NotificationService().unregisterTokenFromBackend(token);
+      }
+    });
     _subscription?.cancel();
     _socketService.disconnect();
     _notifications.clear();

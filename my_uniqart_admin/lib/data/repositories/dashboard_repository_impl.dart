@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/network/api_client.dart';
@@ -12,11 +14,29 @@ class DashboardRepositoryImpl implements DashboardRepository {
   @override
   Future<DashboardCounts> getPendingCounts() async {
     try {
+      debugPrint('--- Dashboard API Requests ---');
+      debugPrint('GET URL 1: ${ApiConstants.baseUrl}${ApiConstants.pendingVehiclesEndpoint}');
+      debugPrint('GET URL 2: ${ApiConstants.baseUrl}${ApiConstants.pendingFinanceOffersEndpoint}');
+      debugPrint('GET URL 3: ${ApiConstants.baseUrl}${ApiConstants.adminLoanRequestsEndpoint}');
+
       final results = await Future.wait([
-        _apiClient.dio.get(ApiConstants.pendingVehiclesEndpoint, queryParameters: {'limit': 1}),
-        _apiClient.dio.get(ApiConstants.pendingFinanceOffersEndpoint, queryParameters: {'limit': 1}),
-        _apiClient.dio.get(ApiConstants.adminLoanRequestsEndpoint, queryParameters: {'limit': 100}),
-      ]);
+        _apiClient.dio
+            .get(ApiConstants.pendingVehiclesEndpoint, queryParameters: {'limit': 1})
+            .timeout(const Duration(seconds: 12)),
+        _apiClient.dio
+            .get(ApiConstants.pendingFinanceOffersEndpoint, queryParameters: {'limit': 1})
+            .timeout(const Duration(seconds: 12)),
+        _apiClient.dio
+            .get(ApiConstants.adminLoanRequestsEndpoint, queryParameters: {'limit': 100})
+            .timeout(const Duration(seconds: 12)),
+      ], eagerError: true).timeout(const Duration(seconds: 15));
+
+      debugPrint('HTTP Status 1 (Vehicles): ${results[0].statusCode}');
+      debugPrint('HTTP Status 2 (Finance): ${results[1].statusCode}');
+      debugPrint('HTTP Status 3 (Loans): ${results[2].statusCode}');
+      debugPrint('Response Body 1: ${results[0].data}');
+      debugPrint('Response Body 2: ${results[1].data}');
+      debugPrint('Response Body 3: ${results[2].data}');
 
       int pendingVehicles = _extractTotal(results[0].data);
       int pendingFinanceOffers = _extractTotal(results[1].data);
@@ -38,6 +58,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
         pendingFinanceOffers: pendingFinanceOffers,
         pendingLoanRequests: pendingLoanRequests,
       );
+    } on TimeoutException catch (_) {
+      throw Exception('Dashboard request timed out while contacting the server.');
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e));
     } catch (e) {

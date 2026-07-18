@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "673608950904",
+    "project_id": "myuniqart-admin",
+    "storage_bucket": "myuniqart-admin.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673608950904:android:67e3178bd281cbe5cdb98d",
+        "android_client_info": {
+          "package_name": "com.myuniqart.my_uniqart_admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDE2EQC0V78cHwg1LtpY8qI1CgJjLH7HkE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

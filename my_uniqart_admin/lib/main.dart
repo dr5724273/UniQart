@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'core/network/notification_service.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/dashboard_provider.dart';
 import 'presentation/providers/vehicle_provider.dart';
@@ -11,8 +12,9 @@ import 'presentation/screens/login/login_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/widgets/authenticated_shell.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().initialize();
   runApp(const MyUniQartAdminApp());
 }
 

@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/network/notification_service.dart';
 import '../providers/notification_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../screens/vehicles/vehicle_approval_screen.dart';
@@ -16,12 +18,34 @@ class AuthenticatedShell extends StatefulWidget {
 }
 
 class _AuthenticatedShellState extends State<AuthenticatedShell> {
+  StreamSubscription<Map<String, String>>? _clickSubscription;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       Provider.of<NotificationProvider>(context, listen: false).initSocketConnection();
+
+      _clickSubscription?.cancel();
+      _clickSubscription = NotificationService().onNotificationClick.stream.listen((payload) {
+        if (mounted) {
+          _navigateToScreen(payload['type'] ?? '', payload['url'] ?? '');
+        }
+      });
+
+      final pending = NotificationService().pendingNavigationPayload;
+      if (pending != null) {
+        NotificationService().pendingNavigationPayload = null;
+        _navigateToScreen(pending['type'] ?? '', pending['url'] ?? '');
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _clickSubscription?.cancel();
+    super.dispose();
   }
 
   void _navigateToScreen(String type, String url) {
