@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../core/network/api_client.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -13,12 +14,20 @@ class AuthProvider extends ChangeNotifier {
   String? _errorMessage;
 
   AuthProvider({AuthRepository? authRepository})
-      : _authRepository = authRepository ?? AuthRepositoryImpl();
+      : _authRepository = authRepository ?? AuthRepositoryImpl() {
+    ApiClient.onSessionExpired = handleSessionExpired;
+  }
 
   AuthStatus get status => _status;
   UserEntity? get user => _user;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _status == AuthStatus.loading;
+
+  void handleSessionExpired() {
+    _user = null;
+    _status = AuthStatus.unauthenticated;
+    notifyListeners();
+  }
 
   Future<void> checkAuthStatus() async {
     _status = AuthStatus.loading;

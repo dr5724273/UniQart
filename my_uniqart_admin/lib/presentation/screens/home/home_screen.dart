@@ -5,6 +5,7 @@ import '../../providers/dashboard_provider.dart';
 import '../vehicles/vehicle_approval_screen.dart';
 import '../finance/finance_offer_approval_screen.dart';
 import '../loans/loan_request_approval_screen.dart';
+import '../profile/profile_screen.dart';
 import '../../widgets/notification_bell.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -40,6 +41,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           const NotificationBell(),
+          IconButton(
+            icon: const Icon(Icons.person_rounded),
+            tooltip: 'Profile',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Refresh Counts',

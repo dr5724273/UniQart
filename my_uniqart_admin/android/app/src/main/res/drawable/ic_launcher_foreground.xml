@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.55"
+        android:scaleY="0.55"
+        android:translateX="24.3"
+        android:translateY="24.3">
+        <!-- Shield Base -->
+        <path
+            android:fillColor="#3B82F6"
+            android:pathData="M54,6 L18,22 C18,58 33,86 54,98 C75,86 90,58 90,22 L54,6 Z"/>
+        <!-- Shield Inner Gold Border/Crown -->
+        <path
+            android:fillColor="#F59E0B"
+            android:pathData="M54,14 L24,27 C24.5,56 36,80 54,90 C72,80 83.5,56 84,27 L54,14 Z"/>
+        <!-- Inner Navy Shield -->
+        <path
+            android:fillColor="#1E3A8A"
+            android:pathData="M54,20 L30,31 C30.5,54 39,74 54,82 C69,74 77.5,54 78,31 L54,20 Z"/>
+        <!-- Admin Cart & Check Emblem -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M38,38 L42,38 L47,54 L65,54 L69,42 L45,42 L44,38 Z M48,58 C46.3,58 45,59.3 45,61 C45,62.7 46.3,64 48,64 C49.7,64 51,62.7 51,61 C51,59.3 49.7,58 48,58 Z M64,58 C62.3,58 61,59.3 61,61 C61,62.7 62.3,64 64,64 C65.7,64 67,62.7 67,61 C67,59.3 65.7,58 64,58 Z M58,44 L64,50 L56,58 L52,54 Z"/>
+    </group>
+</vector>

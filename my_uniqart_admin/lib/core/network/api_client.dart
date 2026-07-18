@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
 import '../storage/token_storage.dart';
 
 class ApiClient {
+  static VoidCallback? onSessionExpired;
   final Dio _dio;
   final TokenStorage _tokenStorage;
 
@@ -24,6 +26,15 @@ class ApiClient {
             options.headers['Authorization'] = 'Bearer $token';
           }
           return handler.next(options);
+        },
+        onError: (DioException e, handler) async {
+          if (e.response?.statusCode == 401) {
+            await _tokenStorage.clearToken();
+            if (onSessionExpired != null) {
+              onSessionExpired!();
+            }
+          }
+          return handler.next(e);
         },
       ),
     );

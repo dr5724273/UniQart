@@ -8,6 +8,7 @@ import 'presentation/providers/loan_request_provider.dart';
 import 'presentation/providers/notification_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/login/login_screen.dart';
+import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/widgets/authenticated_shell.dart';
 
 void main() {
@@ -54,11 +55,7 @@ class MyUniQartAdminApp extends StatelessWidget {
 
   Widget _getHomeWidget(AuthProvider authProvider) {
     if (authProvider.status == AuthStatus.loading || authProvider.status == AuthStatus.initial) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const SplashScreen();
     }
     if (authProvider.status == AuthStatus.authenticated) {
       return const AuthenticatedShell(child: HomeScreen());
