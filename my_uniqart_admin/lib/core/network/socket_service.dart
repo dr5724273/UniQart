@@ -16,7 +16,7 @@ class SocketService {
     final formattedToken = token.startsWith('Bearer ') ? token : 'Bearer $token';
 
     _socket = io.io(
-      ApiConstants.baseUrl,
+      ApiConstants.socketUrl,
       io.OptionBuilder()
           .setTransports(['websocket', 'polling'])
           .setAuth({'token': formattedToken})
