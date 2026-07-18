@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../vehicles/vehicle_approval_screen.dart';
+import '../finance/finance_offer_approval_screen.dart';
+import '../loans/loan_request_approval_screen.dart';
+import '../../widgets/notification_bell.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -36,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
+          const NotificationBell(),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             tooltip: 'Refresh Counts',
@@ -177,12 +181,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.account_balance_rounded,
                       color: Colors.purple.shade700,
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Finance Offer Approval feature coming in next phase.'),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const FinanceOfferApprovalScreen()),
+                        ).then((_) {
+                          dashboardProvider.fetchCounts();
+                        });
                       },
                     ),
                     const SizedBox(height: 12),
@@ -195,12 +199,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.request_quote_rounded,
                       color: Colors.amber.shade800,
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Loan Request Approval feature coming in next phase.'),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoanRequestApprovalScreen()),
+                        ).then((_) {
+                          dashboardProvider.fetchCounts();
+                        });
                       },
                     ),
                   ],

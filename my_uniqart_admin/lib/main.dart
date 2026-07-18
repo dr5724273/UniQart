@@ -3,8 +3,12 @@ import 'package:provider/provider.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/dashboard_provider.dart';
 import 'presentation/providers/vehicle_provider.dart';
+import 'presentation/providers/finance_offer_provider.dart';
+import 'presentation/providers/loan_request_provider.dart';
+import 'presentation/providers/notification_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/login/login_screen.dart';
+import 'presentation/widgets/authenticated_shell.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +25,9 @@ class MyUniQartAdminApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()..checkAuthStatus()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => VehicleProvider()),
+        ChangeNotifierProvider(create: (_) => FinanceOfferProvider()),
+        ChangeNotifierProvider(create: (_) => LoanRequestProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
@@ -54,7 +61,7 @@ class MyUniQartAdminApp extends StatelessWidget {
       );
     }
     if (authProvider.status == AuthStatus.authenticated) {
-      return const HomeScreen();
+      return const AuthenticatedShell(child: HomeScreen());
     }
     return const LoginScreen();
   }
