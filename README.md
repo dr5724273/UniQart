@@ -1,4 +1,4 @@
-# UniQart
+# MyUniQart
 
 Rent Vehicles • Get Finance • Lend Money — All in One Trusted Marketplace
 

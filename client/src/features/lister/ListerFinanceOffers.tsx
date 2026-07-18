@@ -17,7 +17,7 @@ export function ListerFinanceOffers() {
   const [maxLoan, setMaxLoan] = useState("50000");
   const [interestRate, setInterestRate] = useState("18");
   const [durationMonths, setDurationMonths] = useState({ m3: true, m6: true, m12: true });
-  const [terms, setTerms] = useState("KYC required. Collateral verification by UniQart admin.");
+  const [terms, setTerms] = useState("KYC required. Collateral verification by MyUniQart admin.");
 
   const durations = useMemo(() => {
     const d: number[] = [];

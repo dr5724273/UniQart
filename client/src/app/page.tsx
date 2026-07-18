@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useMode } from "@/context/ModeContext";
@@ -36,7 +36,7 @@ export default function HomePage() {
               <div className="grid gap-4">
                 <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
                   <div className="text-sm font-semibold text-slate-900">Admin-first approvals</div>
-                  <div className="mt-1 text-sm text-slate-600">Nothing goes live until UniQart Admin approves it.</div>
+                  <div className="mt-1 text-sm text-slate-600">Nothing goes live until MyUniQart Admin approves it.</div>
                 </div>
                 <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
                   <div className="text-sm font-semibold text-slate-900">Trusted marketplace</div>
@@ -54,7 +54,7 @@ export default function HomePage() {
 
       <section className="container-page py-12">
         <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Choose your portal</h2>
-        <p className="mt-2 text-slate-600">Login and start using UniQart in minutes.</p>
+        <p className="mt-2 text-slate-600">Login and start using MyUniQart in minutes.</p>
 
         <div className="mt-6 grid gap-6 md:grid-cols-3">
           <Card>
@@ -96,7 +96,7 @@ export default function HomePage() {
       </section>
 
       <footer className="border-t border-slate-200 bg-white">
-        <div className="container-page py-8 text-sm text-slate-500">© {new Date().getFullYear()} UniQart</div>
+        <div className="container-page py-8 text-sm text-slate-500">© {new Date().getFullYear()} MyUniQart</div>
       </footer>
     </main>
   );

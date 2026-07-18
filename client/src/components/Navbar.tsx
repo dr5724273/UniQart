@@ -14,7 +14,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
       <div className="container-page flex h-16 items-center justify-between gap-3">
         <Link href="/" className="text-lg font-extrabold tracking-tight text-primary-800">
-          UniQart
+          MyUniQart
         </Link>
 
         <div className="flex items-center gap-3">

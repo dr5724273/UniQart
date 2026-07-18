@@ -1,0 +1,16 @@
+{
+  "name": "MyUniQart — Rental & Finance Marketplace",
+  "short_name": "MyUniQart",
+  "description": "Rent Vehicles • Get Finance • Lend Money — All in One Trusted Marketplace",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
