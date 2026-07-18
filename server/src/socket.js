@@ -117,8 +117,22 @@ function getIo() {
 }
 
 async function emitAdminNotification(notification) {
-  if (ioInstance) {
-    ioInstance.to("admin").emit("admin_notification", notification);
+  console.log("[Notification] Starting send attempt for:", {
+    id: notification.id,
+    title: notification.title,
+    type: notification.type
+  });
+
+  try {
+    if (ioInstance) {
+      ioInstance.to("admin").emit("admin_notification", notification);
+      const room = ioInstance.sockets.adapter.rooms.get("admin");
+      console.log(`[Notification] Socket.IO emitted to 'admin' room successfully. Active sockets in room: ${room ? room.size : 0}`);
+    } else {
+      console.warn("[Notification] Socket.IO ioInstance not available; skipping foreground socket emit.");
+    }
+  } catch (socketErr) {
+    console.error("[Notification] Socket.IO emit error:", socketErr.message);
   }
 
   try {
@@ -132,8 +146,13 @@ async function emitAdminNotification(notification) {
       }
     }
 
-    if (tokens.size > 0 && firebaseInitialized) {
+    if (tokens.size === 0) {
+      console.log("[Notification] No active FCM tokens found in MongoDB for admins.");
+    } else if (!firebaseInitialized) {
+      console.warn("[Notification] Firebase Admin not initialized; skipping FCM multicast.");
+    } else {
       const tokenList = Array.from(tokens);
+      console.log(`[Notification] Attempting FCM broadcast to ${tokenList.length} device tokens...`);
       const message = {
         notification: {
           title: notification.title || "New Approval Request",
@@ -159,11 +178,14 @@ async function emitAdminNotification(notification) {
       };
 
       const response = await admin.messaging().sendEachForMulticast(message);
+      console.log(`[Notification] FCM broadcast completed. Success: ${response.successCount}, Failure: ${response.failureCount}`);
       if (response.failureCount > 0) {
         const failedTokens = [];
         response.responses.forEach((resp, idx) => {
           if (!resp.success) {
             const code = resp.error?.code;
+            const msg = resp.error?.message;
+            console.error(`[Notification] FCM send failed for token idx ${idx} (${tokenList[idx].slice(0, 15)}...): ${code} - ${msg}`);
             if (code === "messaging/invalid-registration-token" || code === "messaging/registration-token-not-registered") {
               failedTokens.push(tokenList[idx]);
             }
@@ -174,11 +196,12 @@ async function emitAdminNotification(notification) {
             { role: "admin" },
             { $pull: { fcmTokens: { $in: failedTokens } } }
           );
+          console.log(`[Notification] Cleaned up ${failedTokens.length} stale/invalid FCM tokens from MongoDB.`);
         }
       }
     }
   } catch (e) {
-    console.error("Error sending FCM notification:", e.message);
+    console.error("[Notification] Error during FCM broadcast:", e.message);
   }
 }
 

@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
+import '../storage/token_storage.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -118,6 +119,21 @@ class NotificationService {
         debugPrint('FCM getInitialMessage error or timeout: $e');
       }
 
+      // Listen to token refreshes and sync automatically
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+        debugPrint('FCM Token refreshed: $newToken');
+        _fcmToken = newToken;
+        try {
+          final tokenStorage = TokenStorage();
+          final authToken = await tokenStorage.getToken();
+          if (authToken != null && authToken.isNotEmpty) {
+            await registerAndSendTokenToBackend(authToken);
+          }
+        } catch (err) {
+          debugPrint('Error syncing refreshed token to backend: $err');
+        }
+      });
+
       // Handle background app open from FCM notification click
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         if (message.data.isNotEmpty) {
@@ -191,11 +207,29 @@ class NotificationService {
     String? payload,
   }) async {
     try {
-      HapticFeedback.vibrate();
-      SystemSound.play(SystemSoundType.click);
+      try {
+        HapticFeedback.vibrate();
+        SystemSound.play(SystemSoundType.click);
+      } catch (_) {}
 
       final notifId = id ?? DateTime.now().millisecondsSinceEpoch.remainder(100000);
       
+      const androidChannel = AndroidNotificationChannel(
+        'admin_high_importance_channel',
+        'Admin High Importance Notifications',
+        description: 'This channel is used for real-time admin approval requests.',
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
+
+      final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      if (androidPlugin != null) {
+        try {
+          await androidPlugin.createNotificationChannel(androidChannel);
+        } catch (_) {}
+      }
+
       const androidDetails = AndroidNotificationDetails(
         'admin_high_importance_channel',
         'Admin High Importance Notifications',

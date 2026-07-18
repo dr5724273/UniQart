@@ -35,6 +35,11 @@ class SocketService {
       _socket?.emit('authenticate', {'token': formattedToken});
     });
 
+    _socket?.on('reconnect', (_) {
+      debugPrint('Socket reconnected after drop! Emitting authenticate event...');
+      _socket?.emit('authenticate', {'token': formattedToken});
+    });
+
     _socket?.on('authenticated', (data) {
       debugPrint('Socket authenticated successfully and joined admin room: $data');
     });

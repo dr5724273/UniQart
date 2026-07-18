@@ -114,7 +114,7 @@ function authRoutes(env) {
       if (!body.success) throw new HttpError(400, "Invalid FCM token");
 
       await User.findByIdAndUpdate(req.user._id, {
-        $addToSet: { fcmTokens: body.data.token }
+        $set: { fcmTokens: [body.data.token] }
       });
       return res.json({ ok: true });
     })
