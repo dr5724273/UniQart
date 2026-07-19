@@ -14,7 +14,8 @@ const loanRequestSchema = new mongoose.Schema(
     documents: [{ type: String }],
     status: { type: String, required: true, enum: ["pending", "approved", "rejected"], default: "pending" },
     internalNotes: { type: String },
-    publicNote: { type: String }
+    publicNote: { type: String },
+    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
   },
   { timestamps: true }
 );

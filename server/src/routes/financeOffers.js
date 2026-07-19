@@ -163,14 +163,16 @@ function financeOffersRoutes(env) {
         .safeParse(req.body);
       if (!params.success || !body.success) throw new HttpError(400, "Invalid input");
 
-      const status = body.data.action === "approve" ? "approved" : "rejected";
-      const item = await FinanceOffer.findByIdAndUpdate(
-        params.data.id,
-        { status, adminNote: body.data.adminNote || "", publicNote: body.data.publicNote || "" },
-        { new: true }
-      ).lean();
-      if (!item) throw new HttpError(404, "Not found");
-      return res.json({ item });
+      const offer = await FinanceOffer.findById(params.data.id);
+      if (!offer) throw new HttpError(404, "Not found");
+
+      offer.status = body.data.action === "approve" ? "approved" : "rejected";
+      offer.adminNote = body.data.adminNote || "";
+      offer.publicNote = body.data.publicNote || "";
+      offer.approvedBy = req.user._id;
+      await offer.save();
+
+      return res.json({ item: offer });
     })
   );
 

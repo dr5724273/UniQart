@@ -10,7 +10,8 @@ const bookingSchema = new mongoose.Schema(
     address: { type: String, required: true },
     status: { type: String, required: true, enum: ["pending", "approved", "rejected"], default: "pending" },
     adminNote: { type: String },
-    publicNote: { type: String }
+    publicNote: { type: String },
+    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
   },
   { timestamps: true }
 );

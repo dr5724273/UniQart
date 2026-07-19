@@ -230,14 +230,16 @@ function loanRequestsRoutes(env) {
             }
           }
 
-          const status = body.data.action === "approve" ? "approved" : "rejected";
-          const updated = await LoanRequest.findByIdAndUpdate(
-            params.data.id,
-            { status, internalNotes: body.data.internalNotes || "", publicNote: body.data.publicNote || "" },
-            { new: true, session }
-          ).lean();
-          if (!updated) throw new HttpError(404, "Not found");
-          return updated;
+          const request = await LoanRequest.findById(params.data.id).session(session);
+          if (!request) throw new HttpError(404, "Not found");
+
+          request.status = body.data.action === "approve" ? "approved" : "rejected";
+          request.internalNotes = body.data.internalNotes || "";
+          request.publicNote = body.data.publicNote || "";
+          request.approvedBy = req.user._id;
+          await request.save({ session });
+
+          return request;
         });
       });
 

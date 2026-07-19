@@ -241,7 +241,7 @@ function bookingsRoutes(env) {
           const status = body.data.action === "approve" ? "approved" : "rejected";
           const updated = await Booking.findByIdAndUpdate(
             params.data.id,
-            { status, adminNote: body.data.adminNote || "", publicNote: body.data.publicNote || "" },
+            { status, adminNote: body.data.adminNote || "", publicNote: body.data.publicNote || "", approvedBy: req.user._id },
             { new: true, session }
           ).lean();
           if (!updated) throw new HttpError(404, "Not found");

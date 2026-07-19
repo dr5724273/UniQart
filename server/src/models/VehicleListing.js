@@ -19,7 +19,8 @@ const vehicleListingSchema = new mongoose.Schema(
     ],
     status: { type: String, required: true, enum: ["pending", "approved", "rejected"], default: "pending" },
     adminNote: { type: String },
-    publicNote: { type: String }
+    publicNote: { type: String },
+    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
   },
   { timestamps: true }
 );

@@ -9,10 +9,10 @@ class UserAuditScreen extends StatelessWidget {
   final String userName;
 
   const UserAuditScreen({
-    Key? key,
+    super.key,
     required this.userId,
     required this.userName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class UserAuditScreen extends StatelessWidget {
 class StatusBadge extends StatelessWidget {
   final String status;
 
-  const StatusBadge({Key? key, required this.status}) : super(key: key);
+  const StatusBadge({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +155,7 @@ class _UserAuditScreenBodyState extends State<_UserAuditScreenBody> {
                     ),
                   )
                 else
-                  ...data.auditTrail.map((item) => _buildAuditCard(item)).toList(),
+                  ...data.auditTrail.map((item) => _buildAuditCard(item)),
               ],
             ),
           );

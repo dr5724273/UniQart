@@ -175,14 +175,16 @@ function vehiclesRoutes(env) {
         .safeParse(req.body);
       if (!params.success || !body.success) throw new HttpError(400, "Invalid input");
 
-      const status = body.data.action === "approve" ? "approved" : "rejected";
-      const item = await VehicleListing.findByIdAndUpdate(
-        params.data.id,
-        { status, adminNote: body.data.adminNote || "", publicNote: body.data.publicNote || "" },
-        { new: true }
-      ).lean();
-      if (!item) throw new HttpError(404, "Not found");
-      return res.json({ item });
+      const vehicle = await VehicleListing.findById(params.data.id);
+      if (!vehicle) throw new HttpError(404, "Not found");
+
+      vehicle.status = body.data.action === "approve" ? "approved" : "rejected";
+      vehicle.adminNote = body.data.adminNote || "";
+      vehicle.publicNote = body.data.publicNote || "";
+      vehicle.approvedBy = req.user._id;
+      await vehicle.save();
+
+      return res.json({ item: vehicle });
     })
   );
 
