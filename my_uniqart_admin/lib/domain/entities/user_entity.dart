@@ -5,6 +5,7 @@ class UserEntity {
   final String phone;
   final String role;
   final String status;
+  final DateTime createdAt;
 
   const UserEntity({
     required this.id,
@@ -13,6 +14,7 @@ class UserEntity {
     required this.phone,
     required this.role,
     required this.status,
+    required this.createdAt,
   });
 
   bool get isAdmin => role == 'admin';

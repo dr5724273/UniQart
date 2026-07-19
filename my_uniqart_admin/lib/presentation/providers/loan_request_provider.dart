@@ -23,7 +23,7 @@ class LoanRequestProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _pendingLoans = await _repository.getPendingLoanRequests();
+      _pendingLoans = await _repository.getPendingRequests();
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
     } finally {
@@ -32,10 +32,10 @@ class LoanRequestProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> submitDecision(String loanId, String action, {String? internalNotes}) async {
+  Future<bool> submitDecision(String requestId, String action, {String? adminNote, String? publicNote}) async {
     try {
-      await _repository.submitDecision(loanId, action, internalNotes: internalNotes);
-      _pendingLoans.removeWhere((l) => l.id == loanId);
+      await _repository.submitDecision(requestId, action, adminNote: adminNote, publicNote: publicNote);
+      _pendingLoans.removeWhere((r) => r.id == requestId);
       notifyListeners();
       return true;
     } catch (e) {

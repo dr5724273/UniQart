@@ -34,7 +34,10 @@ function loanRequestsRoutes(env) {
           collateralDescription: z.string().min(5).max(2000)
         })
         .safeParse(req.body);
-      if (!body.success) throw new HttpError(400, "Invalid input");
+      if (!body.success) {
+        console.error("Loan Request validation failed:", body.error.errors);
+        throw new HttpError(400, "Invalid input: " + JSON.stringify(body.error.errors));
+      }
 
       const offer = await FinanceOffer.findById(body.data.financeOfferId).lean();
       if (!offer || offer.status !== "approved") throw new HttpError(404, "Offer not available");
@@ -139,6 +142,51 @@ function loanRequestsRoutes(env) {
     })
   );
 
+  // Admin: history (approved/rejected)
+  router.get(
+    "/admin/history",
+    auth(env),
+    requireRole("admin"),
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { status: { $in: ["approved", "rejected"] } };
+      const [items, total] = await Promise.all([
+        LoanRequest.find(filter)
+          .sort({ updatedAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("buyerId", "name email phone")
+          .populate("lenderId", "name email phone")
+          .lean(),
+        LoanRequest.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
+    })
+  );
+
+  // Admin: pending loan requests
+  router.get(
+    "/admin/pending",
+    auth(env),
+    requireRole("admin"),
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { status: "pending" };
+      const [items, total] = await Promise.all([
+        LoanRequest.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("buyerId", "name email phone")
+          .populate("lenderId", "name email phone")
+          .populate("financeOfferId")
+          .lean(),
+        LoanRequest.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
+    })
+  );
+
   router.post(
     "/admin/:id/decision",
     auth(env),
@@ -148,7 +196,8 @@ function loanRequestsRoutes(env) {
       const body = z
         .object({
           action: z.enum(["approve", "reject"]),
-          internalNotes: z.string().max(2000).optional()
+          internalNotes: z.string().max(2000).optional(),
+          publicNote: z.string().max(2000).optional()
         })
         .safeParse(req.body);
       if (!params.success || !body.success) throw new HttpError(400, "Invalid input");
@@ -184,7 +233,7 @@ function loanRequestsRoutes(env) {
           const status = body.data.action === "approve" ? "approved" : "rejected";
           const updated = await LoanRequest.findByIdAndUpdate(
             params.data.id,
-            { status, internalNotes: body.data.internalNotes || "" },
+            { status, internalNotes: body.data.internalNotes || "", publicNote: body.data.publicNote || "" },
             { new: true, session }
           ).lean();
           if (!updated) throw new HttpError(404, "Not found");

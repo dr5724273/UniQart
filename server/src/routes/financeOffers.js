@@ -106,6 +106,27 @@ function financeOffersRoutes(env) {
     })
   );
 
+  // Admin: history (approved/rejected)
+  router.get(
+    "/admin/history",
+    auth(env),
+    requireRole("admin"),
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { status: { $in: ["approved", "rejected"] } };
+      const [items, total] = await Promise.all([
+        FinanceOffer.find(filter)
+          .sort({ updatedAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("lenderId", "name email phone")
+          .lean(),
+        FinanceOffer.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
+    })
+  );
+
   // Admin: pending offers
   router.get(
     "/admin/pending",
@@ -136,7 +157,8 @@ function financeOffersRoutes(env) {
       const body = z
         .object({
           action: z.enum(["approve", "reject"]),
-          adminNote: z.string().max(500).optional()
+          adminNote: z.string().max(500).optional(),
+          publicNote: z.string().max(500).optional()
         })
         .safeParse(req.body);
       if (!params.success || !body.success) throw new HttpError(400, "Invalid input");
@@ -144,7 +166,7 @@ function financeOffersRoutes(env) {
       const status = body.data.action === "approve" ? "approved" : "rejected";
       const item = await FinanceOffer.findByIdAndUpdate(
         params.data.id,
-        { status, adminNote: body.data.adminNote || "" },
+        { status, adminNote: body.data.adminNote || "", publicNote: body.data.publicNote || "" },
         { new: true }
       ).lean();
       if (!item) throw new HttpError(404, "Not found");

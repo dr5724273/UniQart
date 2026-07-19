@@ -7,6 +7,7 @@ const { Booking } = require("../models/Booking");
 const { VehicleListing } = require("../models/VehicleListing");
 const { getPaginationParams, formatPaginationResponse } = require("../utils/pagination");
 const { runInTransaction, withVehicleLock } = require("../utils/tx");
+const { emitAdminNotification } = require("../socket");
 
 function bookingsRoutes(env) {
   const router = require("express").Router();
@@ -26,10 +27,15 @@ function bookingsRoutes(env) {
         })
         .safeParse(req.body);
       if (!body.success) throw new HttpError(400, "Invalid input");
-      if (body.data.returnDate <= body.data.pickupDate) throw new HttpError(400, "Return date must be after pickup date");
+      if (body.data.returnDate < body.data.pickupDate) throw new HttpError(400, "Return date cannot be before pickup date");
 
-      // Validate pickup date is not in the past (allowing 60s clock drift)
-      if (body.data.pickupDate.getTime() < Date.now() - 60000) {
+      // Validate pickup date is not strictly before today (ignoring time)
+      const pickupDateObj = new Date(body.data.pickupDate);
+      pickupDateObj.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (pickupDateObj.getTime() < today.getTime()) {
         throw new HttpError(400, "Pickup date cannot be in the past");
       }
 
@@ -69,6 +75,18 @@ function bookingsRoutes(env) {
           return created;
         });
       });
+
+      // Notify admin of new booking
+      try {
+        await emitAdminNotification({
+          type: 'booking_created',
+          title: 'New Booking Request',
+          body: `A new vehicle booking request has been submitted`,
+          url: '/admin/dashboard?tab=bookings',
+        });
+      } catch (notifErr) {
+        console.error('[bookings] admin notification failed:', notifErr?.message);
+      }
 
       return res.status(201).json({ item: booking });
     })
@@ -139,6 +157,52 @@ function bookingsRoutes(env) {
     })
   );
 
+  // Admin: history (approved/rejected)
+  router.get(
+    "/admin/history",
+    auth(env),
+    requireRole("admin"),
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { status: { $in: ["approved", "rejected"] } };
+      const [items, total] = await Promise.all([
+        Booking.find(filter)
+          .sort({ updatedAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("vehicleId")
+          .populate("buyerId", "name email phone")
+          .populate("listerId", "name email phone")
+          .lean(),
+        Booking.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
+    })
+  );
+
+  // Admin: pending bookings
+  router.get(
+    "/admin/pending",
+    auth(env),
+    requireRole("admin"),
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { status: "pending" };
+      const [items, total] = await Promise.all([
+        Booking.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("vehicleId")
+          .populate("buyerId", "name email phone")
+          .populate("listerId", "name email phone")
+          .lean(),
+        Booking.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
+    })
+  );
+
   // Admin: approve/reject
   router.post(
     "/admin/:id/decision",
@@ -149,7 +213,8 @@ function bookingsRoutes(env) {
       const body = z
         .object({
           action: z.enum(["approve", "reject"]),
-          adminNote: z.string().max(500).optional()
+          adminNote: z.string().max(500).optional(),
+          publicNote: z.string().max(500).optional()
         })
         .safeParse(req.body);
       if (!params.success || !body.success) throw new HttpError(400, "Invalid input");
@@ -176,7 +241,7 @@ function bookingsRoutes(env) {
           const status = body.data.action === "approve" ? "approved" : "rejected";
           const updated = await Booking.findByIdAndUpdate(
             params.data.id,
-            { status, adminNote: body.data.adminNote || "" },
+            { status, adminNote: body.data.adminNote || "", publicNote: body.data.publicNote || "" },
             { new: true, session }
           ).lean();
           if (!updated) throw new HttpError(404, "Not found");

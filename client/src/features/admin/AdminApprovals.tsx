@@ -10,6 +10,7 @@ export function AdminApproveVehicles() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<Record<string, string>>({});
+  const [publicNote, setPublicNote] = useState<Record<string, string>>({});
   const [deciding, setDeciding] = useState<Record<string, boolean>>({});
 
   async function load() {
@@ -37,7 +38,7 @@ export function AdminApproveVehicles() {
     try {
       await apiFetch(`/api/vehicles/admin/${id}/decision`, {
         method: "POST",
-        body: JSON.stringify({ action, adminNote: note[id] || "" })
+        body: JSON.stringify({ action, adminNote: note[id] || "", publicNote: publicNote[id] || "" })
       });
       await load();
     } catch (err: any) {
@@ -74,9 +75,15 @@ export function AdminApproveVehicles() {
               <StatusPill value={v.status} />
             </div>
 
-            <div className="mt-3">
-              <label htmlFor={`note-veh-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Admin note</label>
-              <Textarea id={`note-veh-${v._id}`} rows={2} value={note[v._id] || ""} onChange={(e) => setNote((s) => ({ ...s, [v._id]: e.target.value }))} />
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor={`note-veh-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Admin note (Internal)</label>
+                <Textarea id={`note-veh-${v._id}`} rows={2} value={note[v._id] || ""} onChange={(e) => setNote((s) => ({ ...s, [v._id]: e.target.value }))} />
+              </div>
+              <div>
+                <label htmlFor={`pub-veh-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Public note (Visible to user)</label>
+                <Textarea id={`pub-veh-${v._id}`} rows={2} value={publicNote[v._id] || ""} onChange={(e) => setPublicNote((s) => ({ ...s, [v._id]: e.target.value }))} />
+              </div>
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
@@ -101,6 +108,7 @@ export function AdminApproveOffers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<Record<string, string>>({});
+  const [publicNote, setPublicNote] = useState<Record<string, string>>({});
   const [deciding, setDeciding] = useState<Record<string, boolean>>({});
 
   async function load() {
@@ -128,7 +136,7 @@ export function AdminApproveOffers() {
     try {
       await apiFetch(`/api/finance-offers/admin/${id}/decision`, {
         method: "POST",
-        body: JSON.stringify({ action, adminNote: note[id] || "" })
+        body: JSON.stringify({ action, adminNote: note[id] || "", publicNote: publicNote[id] || "" })
       });
       await load();
     } catch (err: any) {
@@ -166,9 +174,15 @@ export function AdminApproveOffers() {
               <StatusPill value={o.status} />
             </div>
 
-            <div className="mt-3">
-              <label htmlFor={`note-off-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Admin note</label>
-              <Textarea id={`note-off-${o._id}`} rows={2} value={note[o._id] || ""} onChange={(e) => setNote((s) => ({ ...s, [o._id]: e.target.value }))} />
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor={`note-off-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Admin note (Internal)</label>
+                <Textarea id={`note-off-${o._id}`} rows={2} value={note[o._id] || ""} onChange={(e) => setNote((s) => ({ ...s, [o._id]: e.target.value }))} />
+              </div>
+              <div>
+                <label htmlFor={`pub-off-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Public note (Visible to user)</label>
+                <Textarea id={`pub-off-${o._id}`} rows={2} value={publicNote[o._id] || ""} onChange={(e) => setPublicNote((s) => ({ ...s, [o._id]: e.target.value }))} />
+              </div>
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">

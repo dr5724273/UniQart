@@ -13,7 +13,8 @@ const loanRequestSchema = new mongoose.Schema(
     collateralDescription: { type: String, required: true },
     documents: [{ type: String }],
     status: { type: String, required: true, enum: ["pending", "approved", "rejected"], default: "pending" },
-    internalNotes: { type: String }
+    internalNotes: { type: String },
+    publicNote: { type: String }
   },
   { timestamps: true }
 );

@@ -177,7 +177,7 @@ class NotificationService {
           baseUrl: ApiConstants.baseUrl,
           headers: {'Authorization': headerAuth},
         ));
-        await dio.post('/auth/fcm-token', data: {'token': token});
+        await dio.post('/api/auth/fcm-token', data: {'token': token});
         debugPrint('FCM token sent to backend: $token');
       }
     } catch (e) {
@@ -193,7 +193,7 @@ class NotificationService {
         baseUrl: ApiConstants.baseUrl,
         headers: {'Authorization': headerAuth},
       ));
-      await dio.delete('/auth/fcm-token', data: {'token': _fcmToken});
+      await dio.delete('/api/auth/fcm-token', data: {'token': _fcmToken});
       _fcmToken = null;
     } catch (e) {
       debugPrint('Failed to unregister FCM token from backend: $e');

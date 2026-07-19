@@ -6,6 +6,8 @@ import 'presentation/providers/dashboard_provider.dart';
 import 'presentation/providers/vehicle_provider.dart';
 import 'presentation/providers/finance_offer_provider.dart';
 import 'presentation/providers/loan_request_provider.dart';
+import 'presentation/providers/booking_provider.dart';
+import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/notification_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/login/login_screen.dart';
@@ -37,6 +39,8 @@ class MyUniQartAdminApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => VehicleProvider()),
         ChangeNotifierProvider(create: (_) => FinanceOfferProvider()),
         ChangeNotifierProvider(create: (_) => LoanRequestProvider()),
+        ChangeNotifierProvider(create: (_) => BookingProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: Consumer<AuthProvider>(

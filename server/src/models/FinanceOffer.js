@@ -11,7 +11,8 @@ const financeOfferSchema = new mongoose.Schema(
     collateralRequired: { type: String, required: true, enum: ["vehicle", "property", "gold", "other"] },
     terms: { type: String, required: true },
     status: { type: String, required: true, enum: ["pending", "approved", "rejected"], default: "pending" },
-    adminNote: { type: String }
+    adminNote: { type: String },
+    publicNote: { type: String }
   },
   { timestamps: true }
 );

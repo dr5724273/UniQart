@@ -8,6 +8,7 @@ class UserModel extends UserEntity {
     required super.phone,
     required super.role,
     required super.status,
+    required super.createdAt,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -18,6 +19,7 @@ class UserModel extends UserEntity {
       phone: (json['phone'] ?? '').toString(),
       role: (json['role'] ?? '').toString(),
       status: (json['status'] ?? 'active').toString(),
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 

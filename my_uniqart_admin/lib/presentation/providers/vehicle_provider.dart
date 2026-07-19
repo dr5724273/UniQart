@@ -32,9 +32,9 @@ class VehicleProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> submitDecision(String vehicleId, String action, {String? adminNote}) async {
+  Future<bool> submitDecision(String vehicleId, String action, {String? adminNote, String? publicNote}) async {
     try {
-      await _repository.submitDecision(vehicleId, action, adminNote: adminNote);
+      await _repository.submitDecision(vehicleId, action, adminNote: adminNote, publicNote: publicNote);
       _pendingVehicles.removeWhere((v) => v.id == vehicleId);
       notifyListeners();
       return true;

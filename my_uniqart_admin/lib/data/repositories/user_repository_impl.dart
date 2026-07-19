@@ -1,21 +1,21 @@
 import 'package:dio/dio.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/network/api_client.dart';
-import '../../domain/entities/vehicle_entity.dart';
-import '../../domain/repositories/vehicle_repository.dart';
-import '../models/vehicle_model.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../domain/repositories/user_repository.dart';
+import '../models/user_model.dart';
 
-class VehicleRepositoryImpl implements VehicleRepository {
+class UserRepositoryImpl implements UserRepository {
   final ApiClient _apiClient;
 
-  VehicleRepositoryImpl({ApiClient? apiClient})
+  UserRepositoryImpl({ApiClient? apiClient})
       : _apiClient = apiClient ?? ApiClient();
 
   @override
-  Future<List<VehicleEntity>> getPendingVehicles({int page = 1, int limit = 20}) async {
+  Future<List<UserEntity>> getUsers({int page = 1, int limit = 50}) async {
     try {
       final response = await _apiClient.dio.get(
-        ApiConstants.pendingVehiclesEndpoint,
+        ApiConstants.adminUsersEndpoint,
         queryParameters: {'page': page, 'limit': limit},
       );
 
@@ -24,11 +24,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
         return [];
       }
 
-      final list = (data['items'] as List)
-          .map((item) => VehicleModel.fromJson(item as Map<String, dynamic>))
+      return (data['items'] as List)
+          .map((item) => UserModel.fromJson(item as Map<String, dynamic>))
           .toList();
-
-      return list;
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e));
     } catch (e) {
@@ -37,19 +35,24 @@ class VehicleRepositoryImpl implements VehicleRepository {
   }
 
   @override
-  Future<void> submitDecision(String vehicleId, String action, {String? adminNote, String? publicNote}) async {
+  Future<void> toggleSuspend(String userId, bool suspended) async {
     try {
-      final payload = <String, dynamic>{'action': action};
-      if (adminNote != null && adminNote.trim().isNotEmpty) {
-        payload['adminNote'] = adminNote.trim();
-      }
-      if (publicNote != null && publicNote.trim().isNotEmpty) {
-        payload['publicNote'] = publicNote.trim();
-      }
-
       await _apiClient.dio.post(
-        ApiConstants.vehicleDecisionEndpoint(vehicleId),
-        data: payload,
+        ApiConstants.userSuspendEndpoint(userId),
+        data: {'suspended': suspended},
+      );
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e));
+    } catch (e) {
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
+
+  @override
+  Future<void> deleteUser(String userId) async {
+    try {
+      await _apiClient.dio.delete(
+        ApiConstants.userDeleteEndpoint(userId),
       );
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e));

@@ -6,22 +6,31 @@ import { Button } from "@/components/ui";
 import { AdminApproveVehicles, AdminApproveOffers } from "@/features/admin/AdminApprovals";
 import { AdminManageBookings, AdminManageLoans } from "@/features/admin/AdminOperations";
 import { AdminManageUsers } from "@/features/admin/AdminUsers";
+import { AdminHistory } from "@/features/admin/AdminHistory";
+import { apiFetch } from "@/lib/api";
 
-type Tab = "vehicles" | "offers" | "bookings" | "loans" | "users";
+type Tab = "vehicles" | "offers" | "bookings" | "loans" | "users" | "history";
 
 export function AdminDashboard() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabParam = (searchParams?.get("tab") as Tab) || "vehicles";
   const [tab, setTab] = useState<Tab>(
-    ["vehicles", "offers", "bookings", "loans", "users"].includes(tabParam) ? tabParam : "vehicles"
+    ["vehicles", "offers", "bookings", "loans", "users", "history"].includes(tabParam) ? tabParam : "vehicles"
   );
+  const [counts, setCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    if (tabParam && ["vehicles", "offers", "bookings", "loans", "users"].includes(tabParam)) {
+    if (tabParam && ["vehicles", "offers", "bookings", "loans", "users", "history"].includes(tabParam)) {
       setTab(tabParam);
     }
   }, [tabParam]);
+
+  useEffect(() => {
+    apiFetch<any>("/api/admin/dashboard")
+      .then(res => setCounts(res))
+      .catch(err => console.error("Failed to load dashboard counts:", err));
+  }, [tab]); // Refresh counts on tab change (simulate auto-refresh on return to dashboard view)
 
   function handleTabChange(key: Tab) {
     setTab(key);
@@ -36,14 +45,15 @@ export function AdminDashboard() {
       <div className="mt-6 flex flex-wrap gap-2">
         {(
           [
-            ["vehicles", "Approve Vehicle Listings"],
-            ["offers", "Approve Finance Offers"],
-            ["bookings", "Booking Management"],
-            ["loans", "Loan Requests"],
-            ["users", "User Management"]
+            ["vehicles", `Vehicles (${counts.pendingVehicles || 0})`],
+            ["offers", `Finance Offers (${counts.pendingFinanceOffers || 0})`],
+            ["bookings", `Bookings (${counts.pendingBookings || 0})`],
+            ["loans", `Loan Requests (${counts.pendingLoanRequests || 0})`],
+            ["users", "Users"],
+            ["history", "History"]
           ] as const
         ).map(([key, label]) => (
-          <Button key={key} variant={tab === key ? "primary" : "secondary"} onClick={() => handleTabChange(key)}>
+          <Button key={key} variant={tab === key ? "primary" : "secondary"} onClick={() => handleTabChange(key as Tab)}>
             {label}
           </Button>
         ))}
@@ -55,6 +65,7 @@ export function AdminDashboard() {
         {tab === "bookings" ? <AdminManageBookings /> : null}
         {tab === "loans" ? <AdminManageLoans /> : null}
         {tab === "users" ? <AdminManageUsers /> : null}
+        {tab === "history" ? <AdminHistory /> : null}
       </div>
     </main>
   );

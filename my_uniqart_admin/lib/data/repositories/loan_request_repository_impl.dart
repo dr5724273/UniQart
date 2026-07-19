@@ -12,7 +12,7 @@ class LoanRequestRepositoryImpl implements LoanRequestRepository {
       : _apiClient = apiClient ?? ApiClient();
 
   @override
-  Future<List<LoanRequestEntity>> getPendingLoanRequests({int page = 1, int limit = 50}) async {
+  Future<List<LoanRequestEntity>> getPendingRequests({int page = 1, int limit = 50}) async {
     try {
       final response = await _apiClient.dio.get(
         ApiConstants.adminLoanRequestsEndpoint,
@@ -36,26 +36,20 @@ class LoanRequestRepositoryImpl implements LoanRequestRepository {
   }
 
   @override
-  Future<LoanRequestEntity> submitDecision(
-    String loanId,
-    String action, {
-    String? internalNotes,
-  }) async {
+  Future<void> submitDecision(String requestId, String action, {String? adminNote, String? publicNote}) async {
     try {
-      final response = await _apiClient.dio.post(
-        ApiConstants.loanRequestDecisionEndpoint(loanId),
-        data: {
-          'action': action,
-          if (internalNotes != null && internalNotes.isNotEmpty) 'internalNotes': internalNotes,
-        },
-      );
-
-      final data = response.data;
-      if (data == null || data['item'] == null) {
-        throw Exception('Invalid response received from server upon loan decision.');
+      final payload = <String, dynamic>{'action': action};
+      if (adminNote != null && adminNote.trim().isNotEmpty) {
+        payload['adminNote'] = adminNote.trim();
+      }
+      if (publicNote != null && publicNote.trim().isNotEmpty) {
+        payload['publicNote'] = publicNote.trim();
       }
 
-      return LoanRequestModel.fromJson(data['item'] as Map<String, dynamic>);
+      await _apiClient.dio.post(
+        ApiConstants.loanRequestDecisionEndpoint(requestId),
+        data: payload,
+      );
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e));
     } catch (e) {

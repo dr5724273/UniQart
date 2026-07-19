@@ -23,7 +23,7 @@ class FinanceOfferProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _pendingOffers = await _repository.getPendingFinanceOffers();
+      _pendingOffers = await _repository.getPendingOffers();
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
     } finally {
@@ -32,9 +32,9 @@ class FinanceOfferProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> submitDecision(String offerId, String action, {String? adminNote}) async {
+  Future<bool> submitDecision(String offerId, String action, {String? adminNote, String? publicNote}) async {
     try {
-      await _repository.submitDecision(offerId, action, adminNote: adminNote);
+      await _repository.submitDecision(offerId, action, adminNote: adminNote, publicNote: publicNote);
       _pendingOffers.removeWhere((o) => o.id == offerId);
       notifyListeners();
       return true;

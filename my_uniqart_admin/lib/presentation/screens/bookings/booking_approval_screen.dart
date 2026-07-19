@@ -1,55 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/vehicle_provider.dart';
+import 'package:intl/intl.dart';
+import '../../providers/booking_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/decision_dialog.dart';
 
-class VehicleApprovalScreen extends StatefulWidget {
-  const VehicleApprovalScreen({super.key});
+class BookingApprovalScreen extends StatefulWidget {
+  const BookingApprovalScreen({super.key});
 
   @override
-  State<VehicleApprovalScreen> createState() => _VehicleApprovalScreenState();
+  State<BookingApprovalScreen> createState() => _BookingApprovalScreenState();
 }
 
-class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
+class _BookingApprovalScreenState extends State<BookingApprovalScreen> {
   final Set<String> _processingIds = {};
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<VehicleProvider>(context, listen: false).fetchPendingVehicles();
+      Provider.of<BookingProvider>(context, listen: false).fetchPendingBookings();
     });
   }
 
-  Future<void> _handleDecision(String vehicleId, String action, {String? adminNote, String? publicNote}) async {
+  Future<void> _handleDecision(String bookingId, String action, {String? adminNote, String? publicNote}) async {
     setState(() {
-      _processingIds.add(vehicleId);
+      _processingIds.add(bookingId);
     });
 
-    final vehicleProvider = Provider.of<VehicleProvider>(context, listen: false);
-    final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
+    final provider = Provider.of<BookingProvider>(context, listen: false);
+    final dashboard = Provider.of<DashboardProvider>(context, listen: false);
 
-    final success = await vehicleProvider.submitDecision(vehicleId, action, adminNote: adminNote, publicNote: publicNote);
+    final success = await provider.submitDecision(bookingId, action, adminNote: adminNote, publicNote: publicNote);
 
     if (mounted) {
       setState(() {
-        _processingIds.remove(vehicleId);
+        _processingIds.remove(bookingId);
       });
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Vehicle successfully ${action == 'approve' ? 'approved' : 'rejected'}.'),
+            content: Text('Booking successfully ${action == 'approve' ? 'approved' : 'rejected'}.'),
             backgroundColor: action == 'approve' ? Colors.green.shade700 : Colors.red.shade700,
             behavior: SnackBarBehavior.floating,
           ),
         );
-        dashboardProvider.fetchCounts();
-      } else if (vehicleProvider.errorMessage != null) {
+        dashboard.fetchCounts();
+      } else if (provider.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(vehicleProvider.errorMessage!),
+            content: Text(provider.errorMessage!),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -60,41 +61,35 @@ class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final vehicleProvider = Provider.of<VehicleProvider>(context);
+    final provider = Provider.of<BookingProvider>(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pending Vehicles Approval'),
+        title: const Text('Pending Bookings'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => vehicleProvider.fetchPendingVehicles(),
+            onPressed: () => provider.fetchPendingBookings(),
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          await vehicleProvider.fetchPendingVehicles();
+          await provider.fetchPendingBookings();
         },
-        child: _buildBody(vehicleProvider, theme, colorScheme),
+        child: _buildBody(provider, theme, colorScheme),
       ),
     );
   }
 
-  Widget _buildBody(
-    VehicleProvider vehicleProvider,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
-    if (vehicleProvider.isLoading && vehicleProvider.pendingVehicles.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+  Widget _buildBody(BookingProvider provider, ThemeData theme, ColorScheme colorScheme) {
+    if (provider.isLoading && provider.pendingBookings.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
     }
 
-    if (vehicleProvider.errorMessage != null && vehicleProvider.pendingVehicles.isEmpty) {
+    if (provider.errorMessage != null && provider.pendingBookings.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -104,18 +99,18 @@ class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
               Icon(Icons.error_outline_rounded, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
               Text(
-                'Failed to load pending vehicles',
+                'Failed to load pending bookings',
                 style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
-                vehicleProvider.errorMessage!,
+                provider.errorMessage!,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 24),
               FilledButton.icon(
-                onPressed: () => vehicleProvider.fetchPendingVehicles(),
+                onPressed: () => provider.fetchPendingBookings(),
                 icon: const Icon(Icons.refresh_rounded),
                 label: const Text('Retry'),
               ),
@@ -125,7 +120,7 @@ class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
       );
     }
 
-    if (vehicleProvider.pendingVehicles.isEmpty) {
+    if (provider.pendingBookings.isEmpty) {
       return Center(
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -134,15 +129,15 @@ class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.directions_car_outlined, size: 80, color: colorScheme.primary.withValues(alpha: 0.5)),
+                Icon(Icons.event_available_rounded, size: 80, color: colorScheme.primary.withValues(alpha: 0.5)),
                 const SizedBox(height: 16),
                 Text(
-                  'No Pending Vehicles',
+                  'No Pending Bookings',
                   style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'All vehicle listings have been reviewed or approved.',
+                  'All booking requests have been reviewed.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
@@ -156,11 +151,12 @@ class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16.0),
-      itemCount: vehicleProvider.pendingVehicles.length,
+      itemCount: provider.pendingBookings.length,
       separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
-        final vehicle = vehicleProvider.pendingVehicles[index];
-        final isProcessing = _processingIds.contains(vehicle.id);
+        final booking = provider.pendingBookings[index];
+        final isProcessing = _processingIds.contains(booking.id);
+        final dateFormat = DateFormat('MMM dd, yyyy');
 
         return Card(
           elevation: 2,
@@ -170,13 +166,12 @@ class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title and Status Badge
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Text(
-                        '${vehicle.year} ${vehicle.brand} ${vehicle.model}',
+                        '${booking.vehicleYear} ${booking.vehicleBrand} ${booking.vehicleModel}',
                         style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -198,32 +193,52 @@ class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-
-                // Specs Grid
                 Row(
                   children: [
-                    _buildSpecChip(Icons.category_outlined, vehicle.vehicleType.toUpperCase(), colorScheme),
-                    const SizedBox(width: 12),
-                    _buildSpecChip(Icons.location_on_outlined, vehicle.city.isEmpty ? 'India' : vehicle.city, colorScheme),
-                    const SizedBox(width: 12),
-                    _buildSpecChip(Icons.currency_rupee_rounded, '${vehicle.pricePerDay}/day', colorScheme),
+                    _buildInfoChip(Icons.calendar_today_rounded, '${dateFormat.format(booking.pickupDate)} - ${dateFormat.format(booking.returnDate)}', colorScheme),
+                    const SizedBox(width: 8),
+                    _buildInfoChip(Icons.access_time_rounded, '${booking.totalDays} Days', colorScheme),
+                    const SizedBox(width: 8),
+                    _buildInfoChip(Icons.payments_rounded, '₹${booking.totalPrice}', colorScheme),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.location_on_outlined, size: 16, color: colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        booking.address,
+                        style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                      ),
+                    ),
                   ],
                 ),
                 const Divider(height: 24),
 
-                // Owner Info
                 Text(
-                  'Lister Information',
+                  'Buyer Info',
                   style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${vehicle.ownerName} (${vehicle.ownerEmail})',
+                  '${booking.buyerName} (${booking.buyerEmail}) ${booking.buyerPhone.isNotEmpty ? "- ${booking.buyerPhone}" : ""}',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+
+                Text(
+                  'Lister Info',
+                  style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${booking.listerName} (${booking.listerEmail}) ${booking.listerPhone.isNotEmpty ? "- ${booking.listerPhone}" : ""}',
                   style: theme.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 20),
 
-                // Action Buttons
                 Row(
                   children: [
                     Expanded(
@@ -231,9 +246,9 @@ class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
                         onPressed: isProcessing ? null : () {
                           showDecisionBottomSheet(
                             context,
-                            title: 'Reject Vehicle',
+                            title: 'Reject Booking',
                             action: 'reject',
-                            onSubmit: (adminNote, publicNote) => _handleDecision(vehicle.id, 'reject', adminNote: adminNote, publicNote: publicNote),
+                            onSubmit: (adminNote, publicNote) => _handleDecision(booking.id, 'reject', adminNote: adminNote, publicNote: publicNote),
                           );
                         },
                         style: OutlinedButton.styleFrom(
@@ -252,9 +267,9 @@ class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
                         onPressed: isProcessing ? null : () {
                           showDecisionBottomSheet(
                             context,
-                            title: 'Approve Vehicle',
+                            title: 'Approve Booking',
                             action: 'approve',
-                            onSubmit: (adminNote, publicNote) => _handleDecision(vehicle.id, 'approve', adminNote: adminNote, publicNote: publicNote),
+                            onSubmit: (adminNote, publicNote) => _handleDecision(booking.id, 'approve', adminNote: adminNote, publicNote: publicNote),
                           );
                         },
                         style: FilledButton.styleFrom(
@@ -282,7 +297,7 @@ class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
     );
   }
 
-  Widget _buildSpecChip(IconData icon, String label, ColorScheme colorScheme) {
+  Widget _buildInfoChip(IconData icon, String label, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(

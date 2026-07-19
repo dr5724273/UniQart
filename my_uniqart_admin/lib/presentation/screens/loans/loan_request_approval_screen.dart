@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/loan_request_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../widgets/decision_dialog.dart';
 
 class LoanRequestApprovalScreen extends StatefulWidget {
   const LoanRequestApprovalScreen({super.key});
@@ -21,19 +22,19 @@ class _LoanRequestApprovalScreenState extends State<LoanRequestApprovalScreen> {
     });
   }
 
-  Future<void> _handleDecision(String loanId, String action) async {
+  Future<void> _handleDecision(String requestId, String action, {String? adminNote, String? publicNote}) async {
     setState(() {
-      _processingIds.add(loanId);
+      _processingIds.add(requestId);
     });
 
     final loanProvider = Provider.of<LoanRequestProvider>(context, listen: false);
     final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
 
-    final success = await loanProvider.submitDecision(loanId, action);
+    final success = await loanProvider.submitDecision(requestId, action, adminNote: adminNote, publicNote: publicNote);
 
     if (mounted) {
       setState(() {
-        _processingIds.remove(loanId);
+        _processingIds.remove(requestId);
       });
 
       if (success) {
@@ -244,7 +245,14 @@ class _LoanRequestApprovalScreenState extends State<LoanRequestApprovalScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: isProcessing ? null : () => _handleDecision(loan.id, 'reject'),
+                        onPressed: isProcessing ? null : () {
+                          showDecisionBottomSheet(
+                            context,
+                            title: 'Reject Loan Request',
+                            action: 'reject',
+                            onSubmit: (adminNote, publicNote) => _handleDecision(loan.id, 'reject', adminNote: adminNote, publicNote: publicNote),
+                          );
+                        },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: colorScheme.error,
                           side: BorderSide(color: colorScheme.error),
@@ -258,7 +266,14 @@ class _LoanRequestApprovalScreenState extends State<LoanRequestApprovalScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: isProcessing ? null : () => _handleDecision(loan.id, 'approve'),
+                        onPressed: isProcessing ? null : () {
+                          showDecisionBottomSheet(
+                            context,
+                            title: 'Approve Loan Request',
+                            action: 'approve',
+                            onSubmit: (adminNote, publicNote) => _handleDecision(loan.id, 'approve', adminNote: adminNote, publicNote: publicNote),
+                          );
+                        },
                         style: FilledButton.styleFrom(
                           backgroundColor: Colors.green.shade600,
                           padding: const EdgeInsets.symmetric(vertical: 12),

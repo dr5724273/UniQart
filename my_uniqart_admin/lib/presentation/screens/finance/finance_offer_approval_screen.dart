@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/finance_offer_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../widgets/decision_dialog.dart';
 
 class FinanceOfferApprovalScreen extends StatefulWidget {
   const FinanceOfferApprovalScreen({super.key});
@@ -21,7 +22,7 @@ class _FinanceOfferApprovalScreenState extends State<FinanceOfferApprovalScreen>
     });
   }
 
-  Future<void> _handleDecision(String offerId, String action) async {
+  Future<void> _handleDecision(String offerId, String action, {String? adminNote, String? publicNote}) async {
     setState(() {
       _processingIds.add(offerId);
     });
@@ -29,7 +30,7 @@ class _FinanceOfferApprovalScreenState extends State<FinanceOfferApprovalScreen>
     final offerProvider = Provider.of<FinanceOfferProvider>(context, listen: false);
     final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
 
-    final success = await offerProvider.submitDecision(offerId, action);
+    final success = await offerProvider.submitDecision(offerId, action, adminNote: adminNote, publicNote: publicNote);
 
     if (mounted) {
       setState(() {
@@ -236,7 +237,14 @@ class _FinanceOfferApprovalScreenState extends State<FinanceOfferApprovalScreen>
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: isProcessing ? null : () => _handleDecision(offer.id, 'reject'),
+                        onPressed: isProcessing ? null : () {
+                          showDecisionBottomSheet(
+                            context,
+                            title: 'Reject Finance Offer',
+                            action: 'reject',
+                            onSubmit: (adminNote, publicNote) => _handleDecision(offer.id, 'reject', adminNote: adminNote, publicNote: publicNote),
+                          );
+                        },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: colorScheme.error,
                           side: BorderSide(color: colorScheme.error),
@@ -250,7 +258,14 @@ class _FinanceOfferApprovalScreenState extends State<FinanceOfferApprovalScreen>
                     const SizedBox(width: 12),
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: isProcessing ? null : () => _handleDecision(offer.id, 'approve'),
+                        onPressed: isProcessing ? null : () {
+                          showDecisionBottomSheet(
+                            context,
+                            title: 'Approve Finance Offer',
+                            action: 'approve',
+                            onSubmit: (adminNote, publicNote) => _handleDecision(offer.id, 'approve', adminNote: adminNote, publicNote: publicNote),
+                          );
+                        },
                         style: FilledButton.styleFrom(
                           backgroundColor: Colors.green.shade600,
                           padding: const EdgeInsets.symmetric(vertical: 12),

@@ -5,6 +5,9 @@ import '../../providers/dashboard_provider.dart';
 import '../vehicles/vehicle_approval_screen.dart';
 import '../finance/finance_offer_approval_screen.dart';
 import '../loans/loan_request_approval_screen.dart';
+import '../bookings/booking_approval_screen.dart';
+import '../users/user_management_screen.dart';
+import '../history/history_screen.dart';
 import '../profile/profile_screen.dart';
 import '../../widgets/notification_bell.dart';
 
@@ -60,6 +63,46 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => authProvider.logout(),
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(color: colorScheme.primary),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.admin_panel_settings, color: colorScheme.onPrimary, size: 48),
+                  const SizedBox(height: 12),
+                  Text('Admin Menu', style: theme.textTheme.titleLarge?.copyWith(color: colorScheme.onPrimary)),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.dashboard),
+              title: const Text('Dashboard'),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.people),
+              title: const Text('User Management'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const UserManagementScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('History'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen()));
+              },
+            ),
+          ],
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -211,6 +254,24 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const LoanRequestApprovalScreen()),
+                        ).then((_) {
+                          dashboardProvider.fetchCounts();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    // Pending Bookings Card
+                    _buildCountCard(
+                      context,
+                      title: 'Pending Bookings',
+                      count: dashboardProvider.counts.pendingBookings,
+                      icon: Icons.calendar_today_rounded,
+                      color: Colors.teal.shade700,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const BookingApprovalScreen()),
                         ).then((_) {
                           dashboardProvider.fetchCounts();
                         });

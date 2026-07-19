@@ -16,6 +16,14 @@ class DashboardProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  int get pendingVehicles => _counts.pendingVehicles;
+  int get pendingFinanceOffers => _counts.pendingFinanceOffers;
+  int get pendingLoanRequests => _counts.pendingLoanRequests;
+  int get pendingBookings => _counts.pendingBookings;
+
+  int get totalPending =>
+      _counts.pendingVehicles + _counts.pendingFinanceOffers + _counts.pendingLoanRequests + _counts.pendingBookings;
+
   Future<void> fetchCounts() async {
     _isLoading = true;
     _errorMessage = null;

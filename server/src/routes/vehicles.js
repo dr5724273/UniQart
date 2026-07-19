@@ -117,6 +117,27 @@ function vehiclesRoutes(env) {
     })
   );
 
+  // Admin: history (approved/rejected)
+  router.get(
+    "/admin/history",
+    auth(env),
+    requireRole("admin"),
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const filter = { status: { $in: ["approved", "rejected"] } };
+      const [items, total] = await Promise.all([
+        VehicleListing.find(filter)
+          .sort({ updatedAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("ownerId", "name email phone role")
+          .lean(),
+        VehicleListing.countDocuments(filter)
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
+    })
+  );
+
   // Admin: pending listings
   router.get(
     "/admin/pending",
@@ -148,7 +169,8 @@ function vehiclesRoutes(env) {
       const body = z
         .object({
           action: z.enum(["approve", "reject"]),
-          adminNote: z.string().max(500).optional()
+          adminNote: z.string().max(500).optional(),
+          publicNote: z.string().max(500).optional()
         })
         .safeParse(req.body);
       if (!params.success || !body.success) throw new HttpError(400, "Invalid input");
@@ -156,7 +178,7 @@ function vehiclesRoutes(env) {
       const status = body.data.action === "approve" ? "approved" : "rejected";
       const item = await VehicleListing.findByIdAndUpdate(
         params.data.id,
-        { status, adminNote: body.data.adminNote || "" },
+        { status, adminNote: body.data.adminNote || "", publicNote: body.data.publicNote || "" },
         { new: true }
       ).lean();
       if (!item) throw new HttpError(404, "Not found");

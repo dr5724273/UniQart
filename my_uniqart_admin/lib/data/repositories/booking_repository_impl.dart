@@ -1,21 +1,21 @@
 import 'package:dio/dio.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/network/api_client.dart';
-import '../../domain/entities/vehicle_entity.dart';
-import '../../domain/repositories/vehicle_repository.dart';
-import '../models/vehicle_model.dart';
+import '../../domain/entities/booking_entity.dart';
+import '../../domain/repositories/booking_repository.dart';
+import '../models/booking_model.dart';
 
-class VehicleRepositoryImpl implements VehicleRepository {
+class BookingRepositoryImpl implements BookingRepository {
   final ApiClient _apiClient;
 
-  VehicleRepositoryImpl({ApiClient? apiClient})
+  BookingRepositoryImpl({ApiClient? apiClient})
       : _apiClient = apiClient ?? ApiClient();
 
   @override
-  Future<List<VehicleEntity>> getPendingVehicles({int page = 1, int limit = 20}) async {
+  Future<List<BookingEntity>> getPendingBookings({int page = 1, int limit = 50}) async {
     try {
       final response = await _apiClient.dio.get(
-        ApiConstants.pendingVehiclesEndpoint,
+        ApiConstants.adminBookingsEndpoint,
         queryParameters: {'page': page, 'limit': limit},
       );
 
@@ -24,11 +24,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
         return [];
       }
 
-      final list = (data['items'] as List)
-          .map((item) => VehicleModel.fromJson(item as Map<String, dynamic>))
+      return (data['items'] as List)
+          .map((item) => BookingModel.fromJson(item as Map<String, dynamic>))
           .toList();
-
-      return list;
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e));
     } catch (e) {
@@ -37,7 +35,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
   }
 
   @override
-  Future<void> submitDecision(String vehicleId, String action, {String? adminNote, String? publicNote}) async {
+  Future<void> submitDecision(String bookingId, String action, {String? adminNote, String? publicNote}) async {
     try {
       final payload = <String, dynamic>{'action': action};
       if (adminNote != null && adminNote.trim().isNotEmpty) {
@@ -48,7 +46,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
       }
 
       await _apiClient.dio.post(
-        ApiConstants.vehicleDecisionEndpoint(vehicleId),
+        ApiConstants.bookingDecisionEndpoint(bookingId),
         data: payload,
       );
     } on DioException catch (e) {

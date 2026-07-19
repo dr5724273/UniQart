@@ -12,7 +12,7 @@ class FinanceOfferRepositoryImpl implements FinanceOfferRepository {
       : _apiClient = apiClient ?? ApiClient();
 
   @override
-  Future<List<FinanceOfferEntity>> getPendingFinanceOffers({int page = 1, int limit = 20}) async {
+  Future<List<FinanceOfferEntity>> getPendingOffers({int page = 1, int limit = 20}) async {
     try {
       final response = await _apiClient.dio.get(
         ApiConstants.pendingFinanceOffersEndpoint,
@@ -35,26 +35,20 @@ class FinanceOfferRepositoryImpl implements FinanceOfferRepository {
   }
 
   @override
-  Future<FinanceOfferEntity> submitDecision(
-    String offerId,
-    String action, {
-    String? adminNote,
-  }) async {
+  Future<void> submitDecision(String offerId, String action, {String? adminNote, String? publicNote}) async {
     try {
-      final response = await _apiClient.dio.post(
-        ApiConstants.financeOfferDecisionEndpoint(offerId),
-        data: {
-          'action': action,
-          if (adminNote != null && adminNote.isNotEmpty) 'adminNote': adminNote,
-        },
-      );
-
-      final data = response.data;
-      if (data == null || data['item'] == null) {
-        throw Exception('Invalid response received from server upon finance decision.');
+      final payload = <String, dynamic>{'action': action};
+      if (adminNote != null && adminNote.trim().isNotEmpty) {
+        payload['adminNote'] = adminNote.trim();
+      }
+      if (publicNote != null && publicNote.trim().isNotEmpty) {
+        payload['publicNote'] = publicNote.trim();
       }
 
-      return FinanceOfferModel.fromJson(data['item'] as Map<String, dynamic>);
+      await _apiClient.dio.post(
+        ApiConstants.financeOfferDecisionEndpoint(offerId),
+        data: payload,
+      );
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e));
     } catch (e) {
