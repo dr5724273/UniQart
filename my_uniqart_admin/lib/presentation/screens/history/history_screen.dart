@@ -112,7 +112,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         status: v['status']?.toString() ?? '',
         adminNote: v['adminNote']?.toString(),
         publicNote: v['publicNote']?.toString(),
-        decidedAt: DateTime.tryParse(v['updatedAt']?.toString() ?? '') ?? DateTime.now(),
+        decidedAt: (DateTime.tryParse(v['updatedAt']?.toString() ?? '') ?? DateTime.now()).toLocal(),
       );
     }).toList();
   }
@@ -129,7 +129,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         status: f['status']?.toString() ?? '',
         adminNote: f['adminNote']?.toString(),
         publicNote: f['publicNote']?.toString(),
-        decidedAt: DateTime.tryParse(f['updatedAt']?.toString() ?? '') ?? DateTime.now(),
+        decidedAt: (DateTime.tryParse(f['updatedAt']?.toString() ?? '') ?? DateTime.now()).toLocal(),
       );
     }).toList();
   }
@@ -147,7 +147,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         status: l['status']?.toString() ?? '',
         adminNote: l['adminNote']?.toString(),
         publicNote: l['publicNote']?.toString(),
-        decidedAt: DateTime.tryParse(l['updatedAt']?.toString() ?? '') ?? DateTime.now(),
+        decidedAt: (DateTime.tryParse(l['updatedAt']?.toString() ?? '') ?? DateTime.now()).toLocal(),
       );
     }).toList();
   }
@@ -165,7 +165,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         status: b['status']?.toString() ?? '',
         adminNote: b['adminNote']?.toString(),
         publicNote: b['publicNote']?.toString(),
-        decidedAt: DateTime.tryParse(b['updatedAt']?.toString() ?? '') ?? DateTime.now(),
+        decidedAt: (DateTime.tryParse(b['updatedAt']?.toString() ?? '') ?? DateTime.now()).toLocal(),
       );
     }).toList();
   }
@@ -295,7 +295,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                 Text(item.subtitle, style: theme.textTheme.bodySmall),
                 const SizedBox(height: 4),
                 Text(
-                  'Decided ${DateFormat('MMM dd, yyyy HH:mm').format(item.decidedAt)}',
+                  'Decided ${DateFormat('MMM dd, yyyy – hh:mm a').format(item.decidedAt.toLocal())}',
                   style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
                 if (item.adminNote != null && item.adminNote!.isNotEmpty) ...[

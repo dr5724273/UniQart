@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/auth_provider.dart';
+import 'user_audit_screen.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -233,7 +234,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   children: [
                     Icon(Icons.calendar_today_outlined, size: 16, color: colorScheme.onSurfaceVariant),
                     const SizedBox(width: 8),
-                    Text('Joined ${DateFormat('MMM dd, yyyy').format(user.createdAt)}', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                    Text('Joined ${DateFormat('MMM dd, yyyy').format(user.createdAt.toLocal())}', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
                   ],
                 ),
                 
@@ -264,6 +265,24 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     ],
                   ),
                 ],
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => UserAuditScreen(userId: user.id, userName: user.name),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.history, size: 18),
+                      label: const Text('View Audit Trail'),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

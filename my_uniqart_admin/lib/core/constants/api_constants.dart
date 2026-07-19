@@ -26,4 +26,5 @@ class ApiConstants {
   
   static String userSuspendEndpoint(String id) => '/api/admin/users/$id/suspend';
   static String userDeleteEndpoint(String id) => '/api/admin/users/$id';
+  static String userAuditEndpoint(String id) => '/api/admin/users/$id/audit';
 }

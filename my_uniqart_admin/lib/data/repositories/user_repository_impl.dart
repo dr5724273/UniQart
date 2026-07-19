@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/network/api_client.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../domain/entities/user_audit_entity.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../models/user_model.dart';
 
@@ -54,6 +55,23 @@ class UserRepositoryImpl implements UserRepository {
       await _apiClient.dio.delete(
         ApiConstants.userDeleteEndpoint(userId),
       );
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e));
+    } catch (e) {
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
+
+  @override
+  Future<UserAuditResultEntity> getUserAudit(String userId) async {
+    try {
+      final response = await _apiClient.dio.get(
+        ApiConstants.userAuditEndpoint(userId),
+      );
+      if (response.data != null) {
+        return UserAuditResultEntity.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw Exception('Empty response');
     } on DioException catch (e) {
       throw Exception(_extractErrorMessage(e));
     } catch (e) {

@@ -7,6 +7,10 @@ import '../providers/dashboard_provider.dart';
 import '../screens/vehicles/vehicle_approval_screen.dart';
 import '../screens/finance/finance_offer_approval_screen.dart';
 import '../screens/loans/loan_request_approval_screen.dart';
+import '../providers/vehicle_provider.dart';
+import '../providers/finance_offer_provider.dart';
+import '../providers/loan_request_provider.dart';
+import '../providers/booking_provider.dart';
 
 class AuthenticatedShell extends StatefulWidget {
   final Widget child;
@@ -78,6 +82,20 @@ class _AuthenticatedShellState extends State<AuthenticatedShell> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
             notifProvider.clearLatestInAppNotification();
+
+            // Auto-refresh Dashboard Counts
+            Provider.of<DashboardProvider>(context, listen: false).fetchCounts();
+
+            // Auto-refresh the specific list based on notification type
+            if (latestNotif.type == 'vehicle_listing') {
+              Provider.of<VehicleProvider>(context, listen: false).fetchPendingVehicles();
+            } else if (latestNotif.type == 'finance_offer') {
+              Provider.of<FinanceOfferProvider>(context, listen: false).fetchPendingOffers();
+            } else if (latestNotif.type == 'loan_request') {
+              Provider.of<LoanRequestProvider>(context, listen: false).fetchPendingLoans();
+            } else if (latestNotif.type == 'booking' || latestNotif.url.contains('booking')) {
+              Provider.of<BookingProvider>(context, listen: false).fetchPendingBookings();
+            }
 
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

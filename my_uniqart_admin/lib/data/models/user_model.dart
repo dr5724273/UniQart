@@ -19,7 +19,7 @@ class UserModel extends UserEntity {
       phone: (json['phone'] ?? '').toString(),
       role: (json['role'] ?? '').toString(),
       status: (json['status'] ?? 'active').toString(),
-      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: (DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now()).toLocal(),
     );
   }
 

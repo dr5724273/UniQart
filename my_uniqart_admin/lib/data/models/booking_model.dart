@@ -51,7 +51,7 @@ class BookingModel extends BookingEntity {
       status: json['status']?.toString() ?? 'pending',
       adminNote: json['adminNote']?.toString(),
       publicNote: json['publicNote']?.toString(),
-      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: (DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now()).toLocal(),
     );
   }
 }

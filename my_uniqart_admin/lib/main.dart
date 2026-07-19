@@ -9,6 +9,7 @@ import 'presentation/providers/loan_request_provider.dart';
 import 'presentation/providers/booking_provider.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/notification_provider.dart';
+import 'presentation/providers/user_audit_provider.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/login/login_screen.dart';
 import 'presentation/screens/splash/splash_screen.dart';
@@ -20,11 +21,16 @@ void main() async {
   } catch (e) {
     debugPrint('Startup FlutterBinding error: $e');
   }
-  runApp(const MyUniQartAdminApp());
-  
-  NotificationService().initialize().catchError((e) {
+
+  // Initialize Firebase and notification service BEFORE runApp
+  // so FCM token is available when AuthenticatedShell connects to Socket.IO
+  try {
+    await NotificationService().initialize();
+  } catch (e) {
     debugPrint('NotificationService startup error: $e');
-  });
+  }
+
+  runApp(const MyUniQartAdminApp());
 }
 
 class MyUniQartAdminApp extends StatelessWidget {
@@ -42,6 +48,7 @@ class MyUniQartAdminApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BookingProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => UserAuditProvider()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
