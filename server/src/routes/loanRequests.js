@@ -142,7 +142,7 @@ function loanRequestsRoutes(env) {
     })
   );
 
-  // Admin: history (approved/rejected)
+  // Admin: history
   router.get(
     "/admin/history",
     auth(env),
@@ -161,6 +161,33 @@ function loanRequestsRoutes(env) {
         LoanRequest.countDocuments(filter)
       ]);
       return res.json(formatPaginationResponse(items, total, page, limit));
+    })
+  );
+
+  // Admin: live operations
+  router.get(
+    "/admin/live",
+    auth(env),
+    requireRole("admin"),
+    asyncHandler(async (req, res) => {
+      const now = new Date();
+      
+      const approvedLoans = await LoanRequest.find({ status: "approved" })
+        .populate("buyerId", "name email phone")
+        .populate({
+          path: "financeOfferId",
+          populate: { path: "lenderId", select: "name email phone" }
+        })
+        .sort({ createdAt: -1 })
+        .lean();
+        
+      const items = approvedLoans.filter(loan => {
+        const endDate = new Date(loan.createdAt);
+        endDate.setMonth(endDate.getMonth() + loan.durationMonths);
+        return endDate > now;
+      });
+
+      return res.json({ items });
     })
   );
 

@@ -9,6 +9,9 @@ import '../bookings/booking_approval_screen.dart';
 import '../users/user_management_screen.dart';
 import '../history/history_screen.dart';
 import '../profile/profile_screen.dart';
+import '../home/live_operations_screen.dart';
+import '../vehicles/vehicle_listings_screen.dart';
+import '../finance/finance_listings_screen.dart';
 import '../../widgets/notification_bell.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -99,6 +102,30 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.monitor_heart_rounded),
+              title: const Text('Live Operations'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const LiveOperationsScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.directions_car_rounded),
+              title: const Text('Vehicle Listings'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const VehicleListingsScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_balance_rounded),
+              title: const Text('Finance Listings'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const FinanceListingsScreen()));
               },
             ),
           ],

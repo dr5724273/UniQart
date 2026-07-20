@@ -77,8 +77,8 @@ function adminUsersRoutes(env) {
       // Fetch from all collections in parallel
       const [vehicles, offers, bookings, loans] = await Promise.all([
         VehicleListing.find({ ownerId: user._id }).populate("approvedBy", "name").lean(),
-        FinanceOffer.find({ lenderId: user._id }).populate("approvedBy", "name").lean(),
-        Booking.find({ buyerId: user._id }).populate("approvedBy", "name").lean(),
+        FinanceOffer.find({ lenderId: user._id }).populate("approvedBy", "name").populate("lenderId", "name").lean(),
+        Booking.find({ buyerId: user._id }).populate("approvedBy", "name").populate("vehicleId", "brand model year").lean(),
         LoanRequest.find({ buyerId: user._id }).populate("approvedBy", "name").lean()
       ]);
 
@@ -87,7 +87,7 @@ function adminUsersRoutes(env) {
       vehicles.forEach(v => auditTrail.push({
         id: v._id.toString(),
         type: "Vehicle",
-        details: `${v.brand || ""} ${v.model || ""} (${v.year || ""})`.trim() || "Vehicle Listing",
+        details: `${v.year || ""} ${v.brand || ""} ${v.model || ""}`.trim() || "Vehicle Listing",
         submittedAt: v.createdAt,
         updatedAt: v.updatedAt,
         adminNote: v.adminNote || "",
@@ -99,7 +99,7 @@ function adminUsersRoutes(env) {
       offers.forEach(o => auditTrail.push({
         id: o._id.toString(),
         type: "Finance Offer",
-        details: `Min ₹${o.minLoan || 0} - Max ₹${o.maxLoan || 0} at ${o.interestRate || 0}%`,
+        details: `${o.collateralRequired === 'vehicle' ? 'Vehicle Loan' : 'Loan'} - ₹${o.minLoan || 0} to ₹${o.maxLoan || 0} by ${o.lenderId?.name || 'Unknown'}`,
         submittedAt: o.createdAt,
         updatedAt: o.updatedAt,
         adminNote: o.adminNote || "",
@@ -112,8 +112,8 @@ function adminUsersRoutes(env) {
         id: b._id.toString(),
         type: "Booking",
         details: b.pickupDate && b.returnDate
-          ? `${new Date(b.pickupDate).toISOString().split('T')[0]} to ${new Date(b.returnDate).toISOString().split('T')[0]}`
-          : "Booking",
+          ? `${b.vehicleId?.year || ""} ${b.vehicleId?.brand || ""} ${b.vehicleId?.model || "Vehicle"}\n${new Date(b.pickupDate).toISOString().split('T')[0]} to ${new Date(b.returnDate).toISOString().split('T')[0]}`.trim()
+          : `${b.vehicleId?.year || ""} ${b.vehicleId?.brand || ""} ${b.vehicleId?.model || "Booking"}`.trim(),
         submittedAt: b.createdAt,
         updatedAt: b.updatedAt,
         adminNote: b.adminNote || "",
@@ -125,7 +125,7 @@ function adminUsersRoutes(env) {
       loans.forEach(l => auditTrail.push({
         id: l._id.toString(),
         type: "Loan Request",
-        details: `Requested ₹${l.requestedAmount || 0}`,
+        details: `Requested ₹${l.requestedAmount || 0}${l.collateralDescription ? ' - ' + l.collateralDescription : ''}`,
         submittedAt: l.createdAt,
         updatedAt: l.updatedAt,
         adminNote: l.internalNotes || "",

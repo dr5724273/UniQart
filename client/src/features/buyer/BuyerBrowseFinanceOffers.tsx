@@ -59,17 +59,32 @@ export function BuyerBrowseFinanceOffers() {
     setError(null);
 
     try {
-      const form = new FormData();
-      form.append("financeOfferId", applyOfferId);
-      form.append("requestedAmount", requestedAmount);
-      form.append("durationMonths", durationMonths);
-      form.append("employmentStatus", employmentStatus);
-      form.append("monthlyIncome", monthlyIncome);
-      form.append("collateralType", collateralType);
-      form.append("collateralDescription", collateralDescription);
-      if (documents) Array.from(documents).forEach((f) => form.append("documents", f));
+      if (documents && documents.length > 0) {
+        const form = new FormData();
+        form.append("financeOfferId", applyOfferId);
+        form.append("requestedAmount", requestedAmount);
+        form.append("durationMonths", durationMonths);
+        form.append("employmentStatus", employmentStatus);
+        form.append("monthlyIncome", monthlyIncome);
+        form.append("collateralType", collateralType);
+        form.append("collateralDescription", collateralDescription);
+        Array.from(documents).forEach((f) => form.append("documents", f));
+        await apiFetchFormData("/api/loan-requests", form);
+      } else {
+        await apiFetch("/api/loan-requests", {
+          method: "POST",
+          body: JSON.stringify({
+            financeOfferId: applyOfferId,
+            requestedAmount: Number(requestedAmount),
+            durationMonths: Number(durationMonths),
+            employmentStatus,
+            monthlyIncome: Number(monthlyIncome),
+            collateralType,
+            collateralDescription
+          })
+        });
+      }
 
-      await apiFetchFormData("/api/loan-requests", form);
 
       setApplyOfferId(null);
       alert("Loan request submitted successfully! Awaiting admin approval.");

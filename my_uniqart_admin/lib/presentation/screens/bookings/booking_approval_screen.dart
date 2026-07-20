@@ -193,12 +193,12 @@ class _BookingApprovalScreenState extends State<BookingApprovalScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Row(
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 8.0,
                   children: [
                     _buildInfoChip(Icons.calendar_today_rounded, '${dateFormat.format(booking.pickupDate)} - ${dateFormat.format(booking.returnDate)}', colorScheme),
-                    const SizedBox(width: 8),
                     _buildInfoChip(Icons.access_time_rounded, '${booking.totalDays} Days', colorScheme),
-                    const SizedBox(width: 8),
                     _buildInfoChip(Icons.payments_rounded, '₹${booking.totalPrice}', colorScheme),
                   ],
                 ),

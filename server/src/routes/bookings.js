@@ -31,12 +31,14 @@ function bookingsRoutes(env) {
 
       // Validate pickup date is not strictly before today (ignoring time)
       const pickupDateObj = new Date(body.data.pickupDate);
-      pickupDateObj.setHours(0, 0, 0, 0);
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (pickupDateObj.getTime() < today.getTime()) {
+      if (pickupDateObj.getTime() < today.setHours(0,0,0,0)) {
         throw new HttpError(400, "Pickup date cannot be in the past");
+      }
+      
+      const durationHours = (body.data.returnDate.getTime() - body.data.pickupDate.getTime()) / (1000 * 60 * 60);
+      if (durationHours < 4) {
+        throw new HttpError(400, "Minimum booking duration is 4 hours");
       }
 
       const booking = await withVehicleLock(body.data.vehicleId, async () => {
@@ -47,16 +49,18 @@ function bookingsRoutes(env) {
             throw new HttpError(403, "Owner cannot book their own vehicle");
           }
 
-          // Check for overlapping pending or approved bookings
+          // Check for overlapping approved bookings
           const overlapQuery = {
             vehicleId: vehicle._id,
-            status: { $in: ["pending", "approved"] },
+            status: "approved",
             pickupDate: { $lt: body.data.returnDate },
             returnDate: { $gt: body.data.pickupDate }
           };
           const existingOverlap = await Booking.findOne(overlapQuery).session(session).lean();
           if (existingOverlap) {
-            throw new HttpError(409, "Vehicle is already booked for the selected date range");
+            const fPickup = new Date(existingOverlap.pickupDate).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" });
+            const fReturn = new Date(existingOverlap.returnDate).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" });
+            throw new HttpError(409, `This vehicle is already booked from ${fPickup} to ${fReturn}.`);
           }
 
           const [created] = await Booking.create(
@@ -170,13 +174,57 @@ function bookingsRoutes(env) {
           .sort({ updatedAt: -1 })
           .skip(skip)
           .limit(limit)
-          .populate("vehicleId")
           .populate("buyerId", "name email phone")
           .populate("listerId", "name email phone")
+          .populate("vehicleId", "brand model year city")
           .lean(),
         Booking.countDocuments(filter)
       ]);
       return res.json(formatPaginationResponse(items, total, page, limit));
+    })
+  );
+
+  // Admin: live operations
+  router.get(
+    "/admin/live",
+    auth(env),
+    requireRole("admin"),
+    asyncHandler(async (req, res) => {
+      const now = new Date();
+      const filter = { 
+        status: "approved",
+        pickupDate: { $lte: now },
+        returnDate: { $gt: now }
+      };
+      
+      const items = await Booking.find(filter)
+        .sort({ returnDate: 1 })
+        .populate("buyerId", "name email phone")
+        .populate("listerId", "name email phone")
+        .populate("vehicleId", "brand model year city")
+        .lean();
+        
+      return res.json({ items });
+    })
+  );
+
+  // Public/Buyer: Get blocked slots for a vehicle
+  router.get(
+    "/blocked/:vehicleId",
+    asyncHandler(async (req, res) => {
+      const { vehicleId } = req.params;
+      const now = new Date();
+      
+      const items = await Booking.find({
+        vehicleId,
+        status: "approved",
+        returnDate: { $gt: now }
+      })
+      .select("pickupDate returnDate")
+      .sort({ pickupDate: 1 })
+      .lean();
+      
+      return res.json({ items });
     })
   );
 

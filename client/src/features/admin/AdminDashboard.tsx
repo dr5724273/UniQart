@@ -7,21 +7,24 @@ import { AdminApproveVehicles, AdminApproveOffers } from "@/features/admin/Admin
 import { AdminManageBookings, AdminManageLoans } from "@/features/admin/AdminOperations";
 import { AdminManageUsers } from "@/features/admin/AdminUsers";
 import { AdminHistory } from "@/features/admin/AdminHistory";
+import { AdminLiveOperations } from "@/features/admin/AdminLiveOperations";
+import { AdminVehicleListings, AdminFinanceListings } from "@/features/admin/AdminListings";
 import { apiFetch } from "@/lib/api";
 
-type Tab = "vehicles" | "offers" | "bookings" | "loans" | "users" | "history";
+type Tab = "vehicles" | "offers" | "bookings" | "loans" | "users" | "history" | "live" | "vehicle-listings" | "finance-listings";
 
 export function AdminDashboard() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabParam = (searchParams?.get("tab") as Tab) || "vehicles";
+  const validTabs: Tab[] = ["vehicles", "offers", "bookings", "loans", "users", "history", "live", "vehicle-listings", "finance-listings"];
   const [tab, setTab] = useState<Tab>(
-    ["vehicles", "offers", "bookings", "loans", "users", "history"].includes(tabParam) ? tabParam : "vehicles"
+    validTabs.includes(tabParam as Tab) ? tabParam : "vehicles"
   );
   const [counts, setCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    if (tabParam && ["vehicles", "offers", "bookings", "loans", "users", "history"].includes(tabParam)) {
+    if (tabParam && validTabs.includes(tabParam as Tab)) {
       setTab(tabParam);
     }
   }, [tabParam]);
@@ -50,7 +53,10 @@ export function AdminDashboard() {
             ["bookings", `Bookings (${counts.pendingBookings || 0})`],
             ["loans", `Loan Requests (${counts.pendingLoanRequests || 0})`],
             ["users", "Users"],
-            ["history", "History"]
+            ["history", "History"],
+            ["live", "Live Operations"],
+            ["vehicle-listings", "Vehicle Listings"],
+            ["finance-listings", "Finance Listings"]
           ] as const
         ).map(([key, label]) => (
           <Button key={key} variant={tab === key ? "primary" : "secondary"} onClick={() => handleTabChange(key as Tab)}>
@@ -66,6 +72,9 @@ export function AdminDashboard() {
         {tab === "loans" ? <AdminManageLoans /> : null}
         {tab === "users" ? <AdminManageUsers /> : null}
         {tab === "history" ? <AdminHistory /> : null}
+        {tab === "live" ? <AdminLiveOperations /> : null}
+        {tab === "vehicle-listings" ? <AdminVehicleListings /> : null}
+        {tab === "finance-listings" ? <AdminFinanceListings /> : null}
       </div>
     </main>
   );

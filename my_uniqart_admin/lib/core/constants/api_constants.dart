@@ -27,4 +27,17 @@ class ApiConstants {
   static String userSuspendEndpoint(String id) => '/api/admin/users/$id/suspend';
   static String userDeleteEndpoint(String id) => '/api/admin/users/$id';
   static String userAuditEndpoint(String id) => '/api/admin/users/$id/audit';
+
+  // Live Operations
+  static const String liveBookingsEndpoint = '/api/bookings/admin/live';
+  static const String liveLoansEndpoint = '/api/loan-requests/admin/live';
+
+  // Vehicle Listings Management
+  static const String allVehicleListingsEndpoint = '/api/vehicles/admin/all';
+  static String vehicleOfflineEndpoint(String id) => '/api/vehicles/admin/$id/offline';
+  static String vehicleDeleteEndpoint(String id) => '/api/vehicles/admin/$id';
+
+  // Finance Listings Management
+  static const String allFinanceListingsEndpoint = '/api/finance-offers/admin/all';
+  static String financeOfferDeleteEndpoint(String id) => '/api/finance-offers/admin/$id';
 }

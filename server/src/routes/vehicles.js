@@ -29,7 +29,7 @@ function vehiclesRoutes(env) {
         .safeParse(req.query);
       if (!query.success) throw new HttpError(400, "Invalid filters");
 
-      const filter = { status: "approved" };
+      const filter = { status: "approved", isOffline: { $ne: true } };
       if (query.data.city) filter.city = query.data.city;
       if (query.data.vehicleType) filter.vehicleType = query.data.vehicleType;
       if (query.data.brand) filter.brand = new RegExp(`^${escapeRegExp(query.data.brand)}`, "i");
@@ -156,6 +156,93 @@ function vehiclesRoutes(env) {
         VehicleListing.countDocuments(filter)
       ]);
       return res.json(formatPaginationResponse(items, total, page, limit));
+    })
+  );
+
+  // Admin: all listings
+  router.get(
+    "/admin/all",
+    auth(env),
+    requireRole("admin"),
+    asyncHandler(async (req, res) => {
+      const { page, limit, skip } = getPaginationParams(req.query);
+      const [items, total] = await Promise.all([
+        VehicleListing.find()
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("ownerId", "name email phone role")
+          .lean(),
+        VehicleListing.countDocuments()
+      ]);
+      return res.json(formatPaginationResponse(items, total, page, limit));
+    })
+  );
+
+  // Admin: toggle offline
+  router.patch(
+    "/admin/:id/offline",
+    auth(env),
+    requireRole("admin"),
+    asyncHandler(async (req, res) => {
+      const params = z.object({ id: z.string().min(1) }).safeParse(req.params);
+      const body = z.object({ isOffline: z.boolean() }).safeParse(req.body);
+      if (!params.success || !body.success) throw new HttpError(400, "Invalid input");
+
+      const vehicle = await VehicleListing.findById(params.data.id);
+      if (!vehicle) throw new HttpError(404, "Not found");
+
+      vehicle.isOffline = body.data.isOffline;
+      await vehicle.save();
+
+      emitAdminNotification({
+        id: `notif-veh-offline-${vehicle._id}-${Date.now()}`,
+        type: "vehicle_update",
+        title: "Vehicle Status Changed",
+        message: `${vehicle.brand} ${vehicle.model} is now ${vehicle.isOffline ? 'OFFLINE' : 'ONLINE'}.`,
+        url: "/admin/dashboard?tab=vehicles",
+        createdAt: new Date().toISOString()
+      });
+
+      return res.json({ ok: true, isOffline: vehicle.isOffline });
+    })
+  );
+
+  // Admin: delete listing
+  router.delete(
+    "/admin/:id",
+    auth(env),
+    requireRole("admin"),
+    asyncHandler(async (req, res) => {
+      const params = z.object({ id: z.string().min(1) }).safeParse(req.params);
+      if (!params.success) throw new HttpError(400, "Invalid input");
+
+      const { Booking } = require("../models/Booking");
+      const activeBookings = await Booking.countDocuments({
+        vehicleId: params.data.id,
+        status: "approved",
+        returnDate: { $gte: new Date() }
+      });
+
+      if (activeBookings > 0) {
+        throw new HttpError(409, "Cannot delete vehicle with active approved bookings");
+      }
+
+      const vehicle = await VehicleListing.findByIdAndDelete(params.data.id);
+      if (!vehicle) throw new HttpError(404, "Not found");
+
+      await Booking.deleteMany({ vehicleId: params.data.id, status: "pending" });
+
+      emitAdminNotification({
+        id: `notif-veh-del-${params.data.id}-${Date.now()}`,
+        type: "vehicle_deleted",
+        title: "Vehicle Deleted",
+        message: `${vehicle.brand} ${vehicle.model} has been deleted by an admin.`,
+        url: "/admin/dashboard?tab=vehicles",
+        createdAt: new Date().toISOString()
+      });
+
+      return res.json({ ok: true });
     })
   );
 

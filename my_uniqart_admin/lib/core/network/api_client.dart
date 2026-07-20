@@ -5,6 +5,9 @@ import '../storage/token_storage.dart';
 
 class ApiClient {
   static VoidCallback? onSessionExpired;
+  static ApiClient? _instance;
+  static ApiClient get instance => _instance ??= ApiClient();
+
   final Dio _dio;
   final TokenStorage _tokenStorage;
 
@@ -52,4 +55,34 @@ class ApiClient {
   }
 
   Dio get dio => _dio;
+
+  Future<Map<String, dynamic>> get(String path, {Map<String, dynamic>? params}) async {
+    try {
+      final response = await _dio.get(path, queryParameters: params);
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      final msg = e.response?.data?['error'] ?? e.response?.data?['message'] ?? e.message ?? 'Request failed';
+      throw Exception(msg);
+    }
+  }
+
+  Future<Map<String, dynamic>> patch(String path, {Map<String, dynamic>? body}) async {
+    try {
+      final response = await _dio.patch(path, data: body);
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      final msg = e.response?.data?['error'] ?? e.response?.data?['message'] ?? e.message ?? 'Request failed';
+      throw Exception(msg);
+    }
+  }
+
+  Future<Map<String, dynamic>> delete(String path) async {
+    try {
+      final response = await _dio.delete(path);
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      final msg = e.response?.data?['error'] ?? e.response?.data?['message'] ?? e.message ?? 'Request failed';
+      throw Exception(msg);
+    }
+  }
 }

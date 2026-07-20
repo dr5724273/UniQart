@@ -21,11 +21,25 @@ export function BuyerBrowseVehicles() {
   const [returnDate, setReturnDate] = useState("");
   const [address, setAddress] = useState("");
   const [submittingBooking, setSubmittingBooking] = useState(false);
+  const [blockedSlots, setBlockedSlots] = useState<{ pickupDate: string; returnDate: string }[]>([]);
 
   const pickupValid = Boolean(pickupDate);
   const returnValid = Boolean(returnDate);
-  const dateRangeValid = !pickupValid || !returnValid || new Date(pickupDate) < new Date(returnDate);
-  const bookingValid = pickupValid && returnValid && dateRangeValid && address.trim().length > 0;
+  
+  const pDate = new Date(pickupDate);
+  const rDate = new Date(returnDate);
+  const durationHours = (rDate.getTime() - pDate.getTime()) / (1000 * 60 * 60);
+  
+  const dateRangeValid = !pickupValid || !returnValid || durationHours >= 4;
+  
+  // Check overlap
+  const hasOverlap = blockedSlots.some(slot => {
+    const sPickup = new Date(slot.pickupDate);
+    const sReturn = new Date(slot.returnDate);
+    return (pDate < sReturn && rDate > sPickup);
+  });
+
+  const bookingValid = pickupValid && returnValid && dateRangeValid && !hasOverlap && address.trim().length > 0;
 
   async function load() {
     if (minPrice && maxPrice && Number(minPrice) > Number(maxPrice)) {
@@ -54,6 +68,20 @@ export function BuyerBrowseVehicles() {
   useEffect(() => {
     void load();
   }, []);
+
+  async function openBookingForm(vehicleId: string) {
+    setBookingVehicleId(vehicleId);
+    setPickupDate("");
+    setReturnDate("");
+    setAddress("");
+    setBlockedSlots([]);
+    try {
+      const res = await apiFetch<{ items: { pickupDate: string; returnDate: string }[] }>(`/api/bookings/blocked/${vehicleId}`);
+      setBlockedSlots(res.items);
+    } catch (err) {
+      console.error("Failed to load blocked slots", err);
+    }
+  }
 
   async function bookNow(e: React.FormEvent) {
     e.preventDefault();
@@ -136,23 +164,38 @@ export function BuyerBrowseVehicles() {
                   ₹<span className="font-extrabold">{v.pricePerDay}</span>/day • Deposit ₹{v.securityDeposit}
                 </div>
               </div>
-              <Button onClick={() => setBookingVehicleId(v._id)}>Book Now</Button>
+              <Button onClick={() => openBookingForm(v._id)}>Book Now</Button>
             </div>
 
             {bookingVehicleId === v._id ? (
               <form className="mt-4 grid gap-3" onSubmit={bookNow} aria-label="Book vehicle form">
+                {blockedSlots.length > 0 && (
+                  <div className="bg-slate-100 p-3 rounded-md mb-2">
+                    <p className="text-xs font-semibold text-slate-800 mb-1">Already Booked Times:</p>
+                    <ul className="text-xs text-slate-600 list-disc list-inside">
+                      {blockedSlots.map((s, i) => (
+                        <li key={i}>
+                          {new Date(s.pickupDate).toLocaleString()} to {new Date(s.returnDate).toLocaleString()}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div>
-                    <label htmlFor={`pickup-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Pickup date</label>
-                    <Input id={`pickup-${v._id}`} value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} type="date" required />
+                    <label htmlFor={`pickup-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Pickup date & time</label>
+                    <Input id={`pickup-${v._id}`} value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} type="datetime-local" required />
                   </div>
                   <div>
-                    <label htmlFor={`return-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Return date</label>
-                    <Input id={`return-${v._id}`} value={returnDate} onChange={(e) => setReturnDate(e.target.value)} type="date" required />
+                    <label htmlFor={`return-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Return date & time</label>
+                    <Input id={`return-${v._id}`} value={returnDate} onChange={(e) => setReturnDate(e.target.value)} type="datetime-local" required />
                   </div>
                 </div>
                 {!dateRangeValid && pickupValid && returnValid ? (
-                  <div className="text-xs font-semibold text-red-600">Return date must be after pickup date.</div>
+                  <div className="text-xs font-semibold text-red-600">Minimum booking duration is 4 hours.</div>
+                ) : null}
+                {hasOverlap && pickupValid && returnValid ? (
+                  <div className="text-xs font-semibold text-red-600">Selected time overlaps with a booked slot.</div>
                 ) : null}
                 <div>
                   <label htmlFor={`address-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Address</label>
