@@ -52,21 +52,27 @@ class MyUniQartAdminApp extends StatelessWidget {
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
-          return MaterialApp(
-            title: 'MyUniQart Admin',
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              useMaterial3: true,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF1E40AF), // Deep royal blue primary
-                brightness: Brightness.light,
+          return Listener(
+            behavior: HitTestBehavior.translucent,
+            onPointerDown: (_) => authProvider.userInteracted(),
+            onPointerMove: (_) => authProvider.userInteracted(),
+            onPointerUp: (_) => authProvider.userInteracted(),
+            child: MaterialApp(
+              title: 'MyUniQart Admin',
+              debugShowCheckedModeBanner: false,
+              theme: ThemeData(
+                useMaterial3: true,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: const Color(0xFF1E40AF), // Deep royal blue primary
+                  brightness: Brightness.light,
+                ),
+                inputDecorationTheme: const InputDecorationTheme(
+                  filled: true,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
               ),
-              inputDecorationTheme: const InputDecorationTheme(
-                filled: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              ),
+              home: _getHomeWidget(authProvider),
             ),
-            home: _getHomeWidget(authProvider),
           );
         },
       ),

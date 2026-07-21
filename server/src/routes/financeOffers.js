@@ -43,10 +43,12 @@ function financeOffersRoutes(env) {
           interestRate: z.coerce.number().min(0).max(60),
           durationMonths: z.array(z.coerce.number().int()).min(1),
           collateralRequired: z.enum(["vehicle", "property", "gold", "other"]),
-          terms: z.string().trim().min(10).max(3000)
+          terms: z.string().trim().min(10).max(3000),
+          termsAccepted: z.boolean().optional().default(false)
         })
         .safeParse(req.body);
       if (!body.success) throw new HttpError(400, "Invalid input");
+      if (!body.data.termsAccepted) throw new HttpError(400, "You must accept the Terms & Conditions to create a finance offer");
 
       if (body.data.minLoan > body.data.maxLoan) {
         throw new HttpError(400, "Min loan cannot exceed max loan");
@@ -215,7 +217,9 @@ function financeOffersRoutes(env) {
         .object({
           action: z.enum(["approve", "reject"]),
           adminNote: z.string().max(500).optional(),
-          publicNote: z.string().max(500).optional()
+          publicNote: z.string().max(500).optional(),
+          overrideInterestRate: z.coerce.number().min(0).max(60).optional(),
+          overrideTermsAndConditions: z.string().trim().max(3000).optional()
         })
         .safeParse(req.body);
       if (!params.success || !body.success) throw new HttpError(400, "Invalid input");
@@ -224,6 +228,14 @@ function financeOffersRoutes(env) {
       if (!offer) throw new HttpError(404, "Not found");
 
       offer.status = body.data.action === "approve" ? "approved" : "rejected";
+      if (body.data.action === "approve") {
+        if (body.data.overrideInterestRate !== undefined) {
+          offer.interestRate = body.data.overrideInterestRate;
+        }
+        if (body.data.overrideTermsAndConditions !== undefined && body.data.overrideTermsAndConditions !== "") {
+          offer.terms = body.data.overrideTermsAndConditions;
+        }
+      }
       offer.adminNote = body.data.adminNote || "";
       offer.publicNote = body.data.publicNote || "";
       offer.approvedBy = req.user._id;

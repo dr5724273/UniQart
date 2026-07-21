@@ -32,9 +32,15 @@ class FinanceOfferProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> submitDecision(String offerId, String action, {String? adminNote, String? publicNote}) async {
+  Future<bool> submitDecision(String offerId, String action, {String? adminNote, String? publicNote, double? overrideInterestRate, String? overrideTermsAndConditions}) async {
     try {
-      await _repository.submitDecision(offerId, action, adminNote: adminNote, publicNote: publicNote);
+      await _repository.submitDecision(
+        offerId, action,
+        adminNote: adminNote,
+        publicNote: publicNote,
+        overrideInterestRate: overrideInterestRate,
+        overrideTermsAndConditions: overrideTermsAndConditions,
+      );
       _pendingOffers.removeWhere((o) => o.id == offerId);
       notifyListeners();
       return true;

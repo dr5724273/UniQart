@@ -69,6 +69,22 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> refreshToken() async {
+    try {
+      final response = await _apiClient.dio.post(ApiConstants.refreshEndpoint);
+      final data = response.data;
+      if (data != null && data['token'] != null) {
+        final token = data['token'].toString();
+        if (token.isNotEmpty) {
+          await _tokenStorage.saveToken(token);
+        }
+      }
+    } catch (_) {
+      // Ignore errors; if refresh fails, let the inactivity/expired logic handle it later
+    }
+  }
+
+  @override
   Future<void> logout() async {
     try {
       await _apiClient.dio.post(ApiConstants.logoutEndpoint);

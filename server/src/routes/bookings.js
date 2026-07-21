@@ -23,10 +23,12 @@ function bookingsRoutes(env) {
           vehicleId: z.string().min(1),
           pickupDate: z.coerce.date(),
           returnDate: z.coerce.date(),
-          address: z.string().min(5).max(500)
+          address: z.string().min(5).max(500),
+          termsAccepted: z.boolean().optional().default(false)
         })
         .safeParse(req.body);
       if (!body.success) throw new HttpError(400, "Invalid input");
+      if (!body.data.termsAccepted) throw new HttpError(400, "You must accept the Terms & Conditions to create a booking");
       if (body.data.returnDate < body.data.pickupDate) throw new HttpError(400, "Return date cannot be before pickup date");
 
       // Validate pickup date is not strictly before today (ignoring time)

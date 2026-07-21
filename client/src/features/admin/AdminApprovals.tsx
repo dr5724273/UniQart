@@ -109,6 +109,8 @@ export function AdminApproveOffers() {
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<Record<string, string>>({});
   const [publicNote, setPublicNote] = useState<Record<string, string>>({});
+  const [overrideInterestRate, setOverrideInterestRate] = useState<Record<string, string>>({});
+  const [overrideTerms, setOverrideTerms] = useState<Record<string, string>>({});
   const [deciding, setDeciding] = useState<Record<string, boolean>>({});
 
   async function load() {
@@ -134,9 +136,14 @@ export function AdminApproveOffers() {
     setDeciding((s) => ({ ...s, [id]: true }));
     setError(null);
     try {
+      const payload: any = { action, adminNote: note[id] || "", publicNote: publicNote[id] || "" };
+      if (action === "approve") {
+        if (overrideInterestRate[id]) payload.overrideInterestRate = parseFloat(overrideInterestRate[id]);
+        if (overrideTerms[id]) payload.overrideTermsAndConditions = overrideTerms[id];
+      }
       await apiFetch(`/api/finance-offers/admin/${id}/decision`, {
         method: "POST",
-        body: JSON.stringify({ action, adminNote: note[id] || "", publicNote: publicNote[id] || "" })
+        body: JSON.stringify(payload)
       });
       await load();
     } catch (err: any) {
@@ -172,6 +179,17 @@ export function AdminApproveOffers() {
                 <div className="mt-1 text-sm text-slate-600">Collateral: {o.collateralRequired}</div>
               </div>
               <StatusPill value={o.status} />
+            </div>
+
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor={`or-int-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Override Interest Rate (%) (Optional)</label>
+                <input id={`or-int-${o._id}`} type="number" className="w-full rounded-md border border-slate-300 p-2 text-sm" value={overrideInterestRate[o._id] ?? ""} placeholder={`Original: ${o.interestRate}%`} onChange={(e) => setOverrideInterestRate((s) => ({ ...s, [o._id]: e.target.value }))} />
+              </div>
+              <div>
+                <label htmlFor={`or-terms-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Override Terms & Conditions (Optional)</label>
+                <Textarea id={`or-terms-${o._id}`} rows={2} value={overrideTerms[o._id] ?? ""} placeholder={o.terms} onChange={(e) => setOverrideTerms((s) => ({ ...s, [o._id]: e.target.value }))} />
+              </div>
             </div>
 
             <div className="mt-3 grid gap-3 sm:grid-cols-2">

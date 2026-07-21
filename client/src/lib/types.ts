@@ -1,4 +1,4 @@
-﻿export type Role = "buyer" | "lister" | "admin";
+export type Role = "buyer" | "lister" | "admin";
 
 export type User = {
   _id: string;
@@ -22,6 +22,7 @@ export type VehicleListing = {
   images: string[];
   status: "pending" | "approved" | "rejected";
   adminNote?: string;
+  termsAndConditions?: string;
 };
 
 export type FinanceOffer = {

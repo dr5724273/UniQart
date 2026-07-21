@@ -4,6 +4,7 @@ class ApiConstants {
   
   static const String loginEndpoint = '/api/auth/login';
   static const String meEndpoint = '/api/auth/me';
+  static const String refreshEndpoint = '/api/auth/refresh';
   static const String logoutEndpoint = '/api/auth/logout';
 
   // Admin Dashboard & Vehicle Approval Endpoints

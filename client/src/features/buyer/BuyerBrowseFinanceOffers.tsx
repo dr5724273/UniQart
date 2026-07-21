@@ -19,6 +19,7 @@ export function BuyerBrowseFinanceOffers() {
   const [collateralDescription, setCollateralDescription] = useState("Gold jewellery");
   const [documents, setDocuments] = useState<FileList | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [loanTermsAccepted, setLoanTermsAccepted] = useState(false);
 
   const activeOffer = items.find((i) => i._id === applyOfferId);
   const reqNum = Number(requestedAmount);
@@ -33,7 +34,8 @@ export function BuyerBrowseFinanceOffers() {
     !isNaN(incNum) &&
     incNum > 0 &&
     employmentStatus.trim().length > 0 &&
-    collateralDescription.trim().length > 0;
+    collateralDescription.trim().length > 0 &&
+    loanTermsAccepted;
 
   async function load() {
     setLoading(true);
@@ -68,6 +70,7 @@ export function BuyerBrowseFinanceOffers() {
         form.append("monthlyIncome", monthlyIncome);
         form.append("collateralType", collateralType);
         form.append("collateralDescription", collateralDescription);
+        form.append("termsAccepted", "true");
         Array.from(documents).forEach((f) => form.append("documents", f));
         await apiFetchFormData("/api/loan-requests", form);
       } else {
@@ -80,13 +83,15 @@ export function BuyerBrowseFinanceOffers() {
             employmentStatus,
             monthlyIncome: Number(monthlyIncome),
             collateralType,
-            collateralDescription
+            collateralDescription,
+            termsAccepted: true
           })
         });
       }
 
 
       setApplyOfferId(null);
+      setLoanTermsAccepted(false);
       alert("Loan request submitted successfully! Awaiting admin approval.");
     } catch (err: any) {
       setError(err?.message || "Apply failed");
@@ -118,6 +123,13 @@ export function BuyerBrowseFinanceOffers() {
             </div>
             <Button onClick={() => setApplyOfferId(o._id)}>Apply for Loan</Button>
           </div>
+
+          {o.terms && (
+            <div className="mt-3 border-t border-slate-100 pt-3">
+              <div className="text-xs font-semibold text-slate-600 mb-1">Terms & Conditions</div>
+              <div className="text-sm text-slate-800 whitespace-pre-wrap">{o.terms}</div>
+            </div>
+          )}
 
           {applyOfferId === o._id ? (
             <form className="mt-4 grid gap-3" onSubmit={applyLoan} aria-label="Apply for loan form">
@@ -165,11 +177,25 @@ export function BuyerBrowseFinanceOffers() {
                 <label htmlFor={`docs-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Upload Documents</label>
                 <input id={`docs-${o._id}`} className="block w-full text-sm" type="file" multiple onChange={(e) => setDocuments(e.target.files)} />
               </div>
+              <label className="flex items-start gap-2 cursor-pointer select-none">
+                <input
+                  id={`loan-terms-${o._id}`}
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-blue-600"
+                  checked={loanTermsAccepted}
+                  onChange={(e) => setLoanTermsAccepted(e.target.checked)}
+                />
+                <span className="text-sm text-slate-700">
+                  I agree to the{" "}
+                  <span className="font-semibold">Terms & Conditions</span>{" "}
+                  {o.terms ? "of this finance offer listed above" : "of this finance offer"} and understand the loan repayment obligations.
+                </span>
+              </label>
               <div className="flex gap-2">
                 <Button type="submit" disabled={submitting || !formValid} aria-disabled={submitting || !formValid}>
                   {submitting ? "Submitting…" : "Submit Loan Request"}
                 </Button>
-                <Button variant="secondary" type="button" onClick={() => setApplyOfferId(null)}>
+                <Button variant="secondary" type="button" onClick={() => { setApplyOfferId(null); setLoanTermsAccepted(false); }}>
                   Cancel
                 </Button>
               </div>

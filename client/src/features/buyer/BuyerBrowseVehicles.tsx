@@ -22,6 +22,7 @@ export function BuyerBrowseVehicles() {
   const [address, setAddress] = useState("");
   const [submittingBooking, setSubmittingBooking] = useState(false);
   const [blockedSlots, setBlockedSlots] = useState<{ pickupDate: string; returnDate: string }[]>([]);
+  const [bookingTermsAccepted, setBookingTermsAccepted] = useState(false);
 
   const pickupValid = Boolean(pickupDate);
   const returnValid = Boolean(returnDate);
@@ -39,7 +40,7 @@ export function BuyerBrowseVehicles() {
     return (pDate < sReturn && rDate > sPickup);
   });
 
-  const bookingValid = pickupValid && returnValid && dateRangeValid && !hasOverlap && address.trim().length > 0;
+  const bookingValid = pickupValid && returnValid && dateRangeValid && !hasOverlap && address.trim().length > 0 && bookingTermsAccepted;
 
   async function load() {
     if (minPrice && maxPrice && Number(minPrice) > Number(maxPrice)) {
@@ -75,6 +76,7 @@ export function BuyerBrowseVehicles() {
     setReturnDate("");
     setAddress("");
     setBlockedSlots([]);
+    setBookingTermsAccepted(false);
     try {
       const res = await apiFetch<{ items: { pickupDate: string; returnDate: string }[] }>(`/api/bookings/blocked/${vehicleId}`);
       setBlockedSlots(res.items);
@@ -92,12 +94,13 @@ export function BuyerBrowseVehicles() {
     try {
       await apiFetch("/api/bookings", {
         method: "POST",
-        body: JSON.stringify({ vehicleId: bookingVehicleId, pickupDate, returnDate, address })
+        body: JSON.stringify({ vehicleId: bookingVehicleId, pickupDate, returnDate, address, termsAccepted: true })
       });
       setBookingVehicleId(null);
       setPickupDate("");
       setReturnDate("");
       setAddress("");
+      setBookingTermsAccepted(false);
       alert("Booking submitted successfully! Awaiting admin approval.");
     } catch (err: any) {
       setError(err?.message || "Booking failed");
@@ -167,6 +170,13 @@ export function BuyerBrowseVehicles() {
               <Button onClick={() => openBookingForm(v._id)}>Book Now</Button>
             </div>
 
+            {v.termsAndConditions && (
+              <div className="mt-3 border-t border-slate-100 pt-3">
+                <div className="text-xs font-semibold text-slate-600 mb-1">Terms & Conditions</div>
+                <div className="text-sm text-slate-800 whitespace-pre-wrap">{v.termsAndConditions}</div>
+              </div>
+            )}
+
             {bookingVehicleId === v._id ? (
               <form className="mt-4 grid gap-3" onSubmit={bookNow} aria-label="Book vehicle form">
                 {blockedSlots.length > 0 && (
@@ -201,6 +211,20 @@ export function BuyerBrowseVehicles() {
                   <label htmlFor={`address-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Address</label>
                   <Textarea id={`address-${v._id}`} value={address} onChange={(e) => setAddress(e.target.value)} rows={3} required />
                 </div>
+                <label className="flex items-start gap-2 cursor-pointer select-none">
+                  <input
+                    id={`booking-terms-${v._id}`}
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-blue-600"
+                    checked={bookingTermsAccepted}
+                    onChange={(e) => setBookingTermsAccepted(e.target.checked)}
+                  />
+                  <span className="text-sm text-slate-700">
+                    I agree to the{" "}
+                    <span className="font-semibold">Terms & Conditions</span>{" "}
+                    {v.termsAndConditions ? "listed above" : "of this vehicle rental"} and understand the booking policy.
+                  </span>
+                </label>
                 <div className="flex gap-2">
                   <Button type="submit" disabled={submittingBooking || !bookingValid} aria-disabled={submittingBooking || !bookingValid}>
                     {submittingBooking ? "Submitting…" : "Submit Booking"}

@@ -134,6 +134,26 @@ function authRoutes(env) {
     })
   );
 
+  router.post(
+    "/refresh",
+    auth(env),
+    asyncHandler(async (req, res) => {
+      // Re-issue a new token for the currently authenticated user
+      const token = jwt.sign({ sub: req.user._id.toString(), role: req.user.role }, env.JWT_SECRET, {
+        expiresIn: env.JWT_EXPIRES_IN
+      });
+
+      const cookieOptions = {
+        httpOnly: true,
+        secure: env.NODE_ENV === "production",
+        sameSite: env.NODE_ENV === "production" ? "none" : "lax"
+      };
+
+      res.cookie("token", token, cookieOptions);
+      return res.json({ ok: true, token });
+    })
+  );
+
   return router;
 }
 

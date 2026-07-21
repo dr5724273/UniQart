@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch, apiFetchFormData } from "@/lib/api";
 import type { VehicleListing } from "@/lib/types";
-import { Button, Card, Input, Select } from "@/components/ui";
+import { Button, Card, Input, Select, Textarea } from "@/components/ui";
 import { StatusPill } from "@/components/StatusPill";
 
 export function ListerVehicleListings() {
@@ -19,6 +19,8 @@ export function ListerVehicleListings() {
   const [city, setCity] = useState("");
   const [pricePerDay, setPricePerDay] = useState("1500");
   const [securityDeposit, setSecurityDeposit] = useState("5000");
+  const [termsAndConditions, setTermsAndConditions] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [images, setImages] = useState<FileList | null>(null);
 
   const yearNum = Number(year);
@@ -34,7 +36,8 @@ export function ListerVehicleListings() {
     !isNaN(priceNum) &&
     priceNum > 0 &&
     !isNaN(depositNum) &&
-    depositNum >= 0;
+    depositNum >= 0 &&
+    termsAccepted;
 
   async function load() {
     setLoading(true);
@@ -68,6 +71,8 @@ export function ListerVehicleListings() {
       form.append("city", city);
       form.append("pricePerDay", pricePerDay);
       form.append("securityDeposit", securityDeposit);
+      form.append("termsAndConditions", termsAndConditions);
+      form.append("termsAccepted", "true");
       if (images) Array.from(images).forEach((f) => form.append("images", f));
 
       await apiFetchFormData("/api/vehicles", form);
@@ -75,6 +80,8 @@ export function ListerVehicleListings() {
       setBrand("");
       setModel("");
       setCity("");
+      setTermsAndConditions("");
+      setTermsAccepted(false);
       setImages(null);
       await load();
     } catch (err: any) {
@@ -136,6 +143,26 @@ export function ListerVehicleListings() {
             <label htmlFor="listing-images" className="mb-1 block text-xs font-semibold text-slate-600">Upload Images</label>
             <input id="listing-images" className="block w-full text-sm" type="file" accept="image/*" multiple onChange={(e) => setImages(e.target.files)} />
           </div>
+
+          <div>
+            <label htmlFor="listing-terms" className="mb-1 block text-xs font-semibold text-slate-600">Terms & Conditions (Optional)</label>
+            <Textarea id="listing-terms" value={termsAndConditions} onChange={(e) => setTermsAndConditions(e.target.value)} placeholder="Rules, pickup/drop-off terms, penalty info, etc." rows={3} />
+          </div>
+
+          <label className="flex items-start gap-2 cursor-pointer select-none">
+            <input
+              id="listing-terms-accept"
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-blue-600"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+            />
+            <span className="text-sm text-slate-700">
+              I agree to the{" "}
+              <span className="font-semibold">MyUniQart Platform Terms & Conditions</span>{" "}
+              and confirm that the information provided is accurate.
+            </span>
+          </label>
 
           {error ? <div className="text-sm font-semibold text-red-600" role="alert">{error}</div> : null}
           <Button type="submit" disabled={submitting || !formValid} aria-disabled={submitting || !formValid}>

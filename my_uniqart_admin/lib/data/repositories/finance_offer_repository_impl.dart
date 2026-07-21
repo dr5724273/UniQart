@@ -35,7 +35,7 @@ class FinanceOfferRepositoryImpl implements FinanceOfferRepository {
   }
 
   @override
-  Future<void> submitDecision(String offerId, String action, {String? adminNote, String? publicNote}) async {
+  Future<void> submitDecision(String offerId, String action, {String? adminNote, String? publicNote, double? overrideInterestRate, String? overrideTermsAndConditions}) async {
     try {
       final payload = <String, dynamic>{'action': action};
       if (adminNote != null && adminNote.trim().isNotEmpty) {
@@ -43,6 +43,14 @@ class FinanceOfferRepositoryImpl implements FinanceOfferRepository {
       }
       if (publicNote != null && publicNote.trim().isNotEmpty) {
         payload['publicNote'] = publicNote.trim();
+      }
+      if (action == 'approve') {
+        if (overrideInterestRate != null) {
+          payload['overrideInterestRate'] = overrideInterestRate;
+        }
+        if (overrideTermsAndConditions != null && overrideTermsAndConditions.isNotEmpty) {
+          payload['overrideTermsAndConditions'] = overrideTermsAndConditions;
+        }
       }
 
       await _apiClient.dio.post(

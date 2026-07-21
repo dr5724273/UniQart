@@ -36,6 +36,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const userRef = React.useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  useEffect(() => {
+    let lastActivity = Date.now();
+    let lastRefresh = Date.now();
+    
+    const handleActivity = () => {
+      lastActivity = Date.now();
+    };
+
+    const events = ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'];
+    events.forEach(e => window.addEventListener(e, handleActivity, { passive: true }));
+
+    const interval = setInterval(() => {
+      if (!userRef.current) return;
+      
+      const now = Date.now();
+      const idleTime = now - lastActivity;
+      
+      if (idleTime >= 5 * 60 * 1000) {
+        void logout();
+      } else if (now - lastRefresh >= 4 * 60 * 1000) {
+        apiFetch<{ token?: string }>("/api/auth/refresh", { method: "POST" })
+          .then((res) => {
+            if (res.token) localStorage.setItem("uniqart_token", res.token);
+            lastRefresh = Date.now();
+          })
+          .catch(() => void logout());
+      }
+    }, 30000);
+
+    return () => {
+      events.forEach(e => window.removeEventListener(e, handleActivity));
+      clearInterval(interval);
+    };
+  }, []);
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -63,8 +103,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       localStorage.removeItem("uniqart_token");
     }
-    await apiFetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
+    try {
+      await apiFetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {
+      console.warn("Logout API failed, continuing local cleanup", e);
+    } finally {
+      setUser(null);
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
+    }
   }
 
   const value = useMemo(() => ({ user, loading, login, register, logout, refresh }), [user, loading]);

@@ -31,13 +31,18 @@ function loanRequestsRoutes(env) {
           employmentStatus: z.string().min(2).max(80),
           monthlyIncome: z.coerce.number().nonnegative(),
           collateralType: z.enum(["vehicle", "property", "gold", "other"]),
-          collateralDescription: z.string().min(5).max(2000)
+          collateralDescription: z.string().min(5).max(2000),
+          termsAccepted: z
+            .union([z.boolean(), z.string().transform((v) => v === "true")])
+            .optional()
+            .default(false)
         })
         .safeParse(req.body);
       if (!body.success) {
         console.error("Loan Request validation failed:", body.error.errors);
         throw new HttpError(400, "Invalid input: " + JSON.stringify(body.error.errors));
       }
+      if (!body.data.termsAccepted) throw new HttpError(400, "You must accept the Terms & Conditions to submit a loan request");
 
       const offer = await FinanceOffer.findById(body.data.financeOfferId).lean();
       if (!offer || offer.status !== "approved") throw new HttpError(404, "Offer not available");

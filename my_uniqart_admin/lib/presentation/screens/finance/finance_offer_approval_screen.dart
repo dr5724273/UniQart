@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/finance_offer_provider.dart';
 import '../../providers/dashboard_provider.dart';
-import '../../widgets/decision_dialog.dart';
+import '../../widgets/finance_decision_dialog.dart';
 
 class FinanceOfferApprovalScreen extends StatefulWidget {
   const FinanceOfferApprovalScreen({super.key});
@@ -22,7 +22,7 @@ class _FinanceOfferApprovalScreenState extends State<FinanceOfferApprovalScreen>
     });
   }
 
-  Future<void> _handleDecision(String offerId, String action, {String? adminNote, String? publicNote}) async {
+  Future<void> _handleDecision(String offerId, String action, {String? adminNote, String? publicNote, double? overrideInterestRate, String? overrideTerms}) async {
     setState(() {
       _processingIds.add(offerId);
     });
@@ -30,7 +30,13 @@ class _FinanceOfferApprovalScreenState extends State<FinanceOfferApprovalScreen>
     final offerProvider = Provider.of<FinanceOfferProvider>(context, listen: false);
     final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
 
-    final success = await offerProvider.submitDecision(offerId, action, adminNote: adminNote, publicNote: publicNote);
+    final success = await offerProvider.submitDecision(
+      offerId, action,
+      adminNote: adminNote,
+      publicNote: publicNote,
+      overrideInterestRate: overrideInterestRate,
+      overrideTermsAndConditions: overrideTerms,
+    );
 
     if (mounted) {
       setState(() {
@@ -238,11 +244,11 @@ class _FinanceOfferApprovalScreenState extends State<FinanceOfferApprovalScreen>
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: isProcessing ? null : () {
-                          showDecisionBottomSheet(
+                          showFinanceDecisionBottomSheet(
                             context,
-                            title: 'Reject Finance Offer',
+                            offer: offer,
                             action: 'reject',
-                            onSubmit: (adminNote, publicNote) => _handleDecision(offer.id, 'reject', adminNote: adminNote, publicNote: publicNote),
+                            onSubmit: (adminNote, publicNote, _, __) => _handleDecision(offer.id, 'reject', adminNote: adminNote, publicNote: publicNote),
                           );
                         },
                         style: OutlinedButton.styleFrom(
@@ -259,11 +265,17 @@ class _FinanceOfferApprovalScreenState extends State<FinanceOfferApprovalScreen>
                     Expanded(
                       child: FilledButton.icon(
                         onPressed: isProcessing ? null : () {
-                          showDecisionBottomSheet(
+                          showFinanceDecisionBottomSheet(
                             context,
-                            title: 'Approve Finance Offer',
+                            offer: offer,
                             action: 'approve',
-                            onSubmit: (adminNote, publicNote) => _handleDecision(offer.id, 'approve', adminNote: adminNote, publicNote: publicNote),
+                            onSubmit: (adminNote, publicNote, overrideInterestRate, overrideTerms) => _handleDecision(
+                              offer.id, 'approve',
+                              adminNote: adminNote,
+                              publicNote: publicNote,
+                              overrideInterestRate: overrideInterestRate,
+                              overrideTerms: overrideTerms,
+                            ),
                           );
                         },
                         style: FilledButton.styleFrom(

@@ -68,10 +68,16 @@ function vehiclesRoutes(env) {
           availability: z
             .string()
             .optional()
-            .transform((v) => (v ? JSON.parse(v) : []))
+            .transform((v) => (v ? JSON.parse(v) : [])),
+          termsAndConditions: z.string().trim().max(3000).optional().default(""),
+          termsAccepted: z
+            .union([z.boolean(), z.string().transform((v) => v === "true")])
+            .optional()
+            .default(false)
         })
         .safeParse(req.body);
       if (!body.success) throw new HttpError(400, "Invalid input");
+      if (!body.data.termsAccepted) throw new HttpError(400, "You must accept the Terms & Conditions to create a listing");
 
       const images = (req.files || []).map((f) => `/${env.UPLOAD_DIR}/vehicle-images/${f.filename}`);
 
@@ -85,7 +91,8 @@ function vehiclesRoutes(env) {
         pricePerDay: body.data.pricePerDay,
         securityDeposit: body.data.securityDeposit,
         images,
-        availability: Array.isArray(body.data.availability) ? body.data.availability : []
+        availability: Array.isArray(body.data.availability) ? body.data.availability : [],
+        termsAndConditions: body.data.termsAndConditions
       });
 
       emitAdminNotification({

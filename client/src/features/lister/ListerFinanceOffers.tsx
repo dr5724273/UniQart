@@ -11,6 +11,7 @@ export function ListerFinanceOffers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const [totalAmount, setTotalAmount] = useState("200000");
   const [minLoan, setMinLoan] = useState("10000");
@@ -41,7 +42,8 @@ export function ListerFinanceOffers() {
     !isNaN(rateNum) &&
     rateNum >= 0 &&
     durations.length > 0 &&
-    terms.trim().length > 0;
+    terms.trim().length > 0 &&
+    termsAccepted;
 
   async function load() {
     setLoading(true);
@@ -76,7 +78,8 @@ export function ListerFinanceOffers() {
           interestRate: Number(interestRate),
           durationMonths: durations,
           collateralRequired: "other",
-          terms
+          terms,
+          termsAccepted: true
         })
       });
       await load();
@@ -84,6 +87,7 @@ export function ListerFinanceOffers() {
       setError(err?.message || "Create failed");
     } finally {
       setSubmitting(false);
+      setTermsAccepted(false);
     }
   }
 
@@ -141,6 +145,21 @@ export function ListerFinanceOffers() {
             <label htmlFor="offer-terms" className="mb-1 block text-xs font-semibold text-slate-600">Terms & Conditions</label>
             <Textarea id="offer-terms" value={terms} onChange={(e) => setTerms(e.target.value)} rows={5} required />
           </div>
+
+          <label className="flex items-start gap-2 cursor-pointer select-none">
+            <input
+              id="offer-terms-accept"
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-blue-600"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+            />
+            <span className="text-sm text-slate-700">
+              I agree to the{" "}
+              <span className="font-semibold">MyUniQart Platform Terms & Conditions</span>{" "}
+              and confirm my finance offer details are accurate.
+            </span>
+          </label>
 
           {error ? <div className="text-sm font-semibold text-red-600" role="alert">{error}</div> : null}
           <Button type="submit" disabled={submitting || !formValid} aria-disabled={submitting || !formValid}>
