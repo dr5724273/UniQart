@@ -220,7 +220,7 @@ class _FinanceOfferApprovalScreenState extends State<FinanceOfferApprovalScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${offer.lenderName} (${offer.lenderEmail})',
+                  '${offer.lenderName} (${offer.lenderEmail}) ${offer.lenderPhone.isNotEmpty ? "- ${offer.lenderPhone}" : ""}',
                   style: theme.textTheme.bodyMedium,
                 ),
                 if (offer.terms.isNotEmpty) ...[

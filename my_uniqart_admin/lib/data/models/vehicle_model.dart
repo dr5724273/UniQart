@@ -5,6 +5,7 @@ class VehicleModel extends VehicleEntity {
     required super.id,
     required super.ownerName,
     required super.ownerEmail,
+    required super.ownerPhone,
     required super.vehicleType,
     required super.brand,
     required super.model,
@@ -19,11 +20,13 @@ class VehicleModel extends VehicleEntity {
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
     String ownerName = 'Unknown Owner';
     String ownerEmail = '';
+    String ownerPhone = '';
 
     if (json['ownerId'] is Map) {
       final ownerMap = json['ownerId'] as Map;
       ownerName = (ownerMap['name'] ?? 'Unknown Owner').toString();
       ownerEmail = (ownerMap['email'] ?? '').toString();
+      ownerPhone = (ownerMap['phone'] ?? '').toString();
     } else if (json['ownerName'] != null) {
       ownerName = json['ownerName'].toString();
     }
@@ -37,6 +40,7 @@ class VehicleModel extends VehicleEntity {
       id: (json['id'] ?? json['_id'] ?? '').toString(),
       ownerName: ownerName,
       ownerEmail: ownerEmail,
+      ownerPhone: ownerPhone,
       vehicleType: (json['vehicleType'] ?? 'car').toString(),
       brand: (json['brand'] ?? '').toString(),
       model: (json['model'] ?? '').toString(),

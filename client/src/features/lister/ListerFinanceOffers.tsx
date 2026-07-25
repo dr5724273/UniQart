@@ -146,6 +146,13 @@ export function ListerFinanceOffers() {
             <Textarea id="offer-terms" value={terms} onChange={(e) => setTerms(e.target.value)} rows={5} required />
           </div>
 
+          <div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 h-40 overflow-y-auto mb-2">
+            <h4 className="font-bold mb-2">Finance Lister Terms</h4>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Lister must deposit 10% of the listed finance amount with the platform before listing.</li>
+              <li>Platform will provide regular reports and keep funds secured.</li>
+            </ul>
+          </div>
           <label className="flex items-start gap-2 cursor-pointer select-none">
             <input
               id="offer-terms-accept"
@@ -155,9 +162,7 @@ export function ListerFinanceOffers() {
               onChange={(e) => setTermsAccepted(e.target.checked)}
             />
             <span className="text-sm text-slate-700">
-              I agree to the{" "}
-              <span className="font-semibold">MyUniQart Platform Terms & Conditions</span>{" "}
-              and confirm my finance offer details are accurate.
+              I have read and agree to all the Terms & Conditions.
             </span>
           </label>
 

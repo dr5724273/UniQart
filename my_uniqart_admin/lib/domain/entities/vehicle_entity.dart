@@ -2,6 +2,7 @@ class VehicleEntity {
   final String id;
   final String ownerName;
   final String ownerEmail;
+  final String ownerPhone;
   final String vehicleType;
   final String brand;
   final String model;
@@ -16,6 +17,7 @@ class VehicleEntity {
     required this.id,
     required this.ownerName,
     required this.ownerEmail,
+    required this.ownerPhone,
     required this.vehicleType,
     required this.brand,
     required this.model,

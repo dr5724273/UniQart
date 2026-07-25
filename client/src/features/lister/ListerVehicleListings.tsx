@@ -149,6 +149,16 @@ export function ListerVehicleListings() {
             <Textarea id="listing-terms" value={termsAndConditions} onChange={(e) => setTermsAndConditions(e.target.value)} placeholder="Rules, pickup/drop-off terms, penalty info, etc." rows={3} />
           </div>
 
+          <div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 h-40 overflow-y-auto mb-2">
+            <h4 className="font-bold mb-2">Rental Lister Terms</h4>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Lister is fully responsible for RC, insurance, paperwork, vehicle condition, and any previous damages.</li>
+              <li>Mandatory photo/video proof before handing over and after receiving the vehicle.</li>
+              <li>Vehicle availability must be updated at least 6 hours in advance.</li>
+              <li>No extra charges can be added without platform approval. Violation may lead to suspension.</li>
+              <li>Dashcam and GPS in the vehicle are mandatory.</li>
+            </ul>
+          </div>
           <label className="flex items-start gap-2 cursor-pointer select-none">
             <input
               id="listing-terms-accept"
@@ -158,9 +168,7 @@ export function ListerVehicleListings() {
               onChange={(e) => setTermsAccepted(e.target.checked)}
             />
             <span className="text-sm text-slate-700">
-              I agree to the{" "}
-              <span className="font-semibold">MyUniQart Platform Terms & Conditions</span>{" "}
-              and confirm that the information provided is accurate.
+              I have read and agree to all the Terms & Conditions.
             </span>
           </label>
 

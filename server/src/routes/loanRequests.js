@@ -116,7 +116,7 @@ function loanRequestsRoutes(env) {
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
-          .populate("buyerId", "name email phone")
+          .populate("buyerId", "name")
           .populate("financeOfferId")
           .lean(),
         LoanRequest.countDocuments(filter)

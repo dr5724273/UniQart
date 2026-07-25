@@ -177,6 +177,15 @@ export function BuyerBrowseFinanceOffers() {
                 <label htmlFor={`docs-${o._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Upload Documents</label>
                 <input id={`docs-${o._id}`} className="block w-full text-sm" type="file" multiple onChange={(e) => setDocuments(e.target.files)} />
               </div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 h-40 overflow-y-auto mb-2">
+                <h4 className="font-bold mb-2">Finance Borrower Terms</h4>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>EMIs must be paid on time. Delays may incur compound penalties.</li>
+                  <li>Security/collateral may be liquidated if payments are not completed.</li>
+                  <li>Missing 3 EMIs may result in loss of security/collateral.</li>
+                  <li>Security documents must be original. Suspicious activity may lead to legal action.</li>
+                </ul>
+              </div>
               <label className="flex items-start gap-2 cursor-pointer select-none">
                 <input
                   id={`loan-terms-${o._id}`}
@@ -186,9 +195,7 @@ export function BuyerBrowseFinanceOffers() {
                   onChange={(e) => setLoanTermsAccepted(e.target.checked)}
                 />
                 <span className="text-sm text-slate-700">
-                  I agree to the{" "}
-                  <span className="font-semibold">Terms & Conditions</span>{" "}
-                  {o.terms ? "of this finance offer listed above" : "of this finance offer"} and understand the loan repayment obligations.
+                  I have read and agree to all the Terms & Conditions.
                 </span>
               </label>
               <div className="flex gap-2">

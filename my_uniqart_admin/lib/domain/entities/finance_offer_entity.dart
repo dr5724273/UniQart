@@ -2,6 +2,7 @@ class FinanceOfferEntity {
   final String id;
   final String lenderName;
   final String lenderEmail;
+  final String lenderPhone;
   final double totalAmount;
   final double minLoan;
   final double maxLoan;
@@ -16,6 +17,7 @@ class FinanceOfferEntity {
     required this.id,
     required this.lenderName,
     required this.lenderEmail,
+    required this.lenderPhone,
     required this.totalAmount,
     required this.minLoan,
     required this.maxLoan,

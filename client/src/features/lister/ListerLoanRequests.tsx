@@ -46,7 +46,7 @@ export function ListerLoanRequests() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-sm font-extrabold">Requested ₹{r.requestedAmount}</div>
-                <div className="mt-1 text-sm text-slate-600">Buyer: {r.buyerId?.name} • Phone: {r.buyerId?.phone}</div>
+                <div className="mt-1 text-sm text-slate-600">Buyer: {r.buyerId?.name?.split(" ")[0] || "Buyer"}</div>
                 <div className="mt-1 text-sm text-slate-600">Income: ₹{r.monthlyIncome}/month • {r.employmentStatus}</div>
                 <div className="mt-1 text-sm text-slate-600">Collateral: {r.collateralType} — {r.collateralDescription}</div>
               </div>

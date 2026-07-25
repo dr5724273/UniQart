@@ -211,6 +211,14 @@ export function BuyerBrowseVehicles() {
                   <label htmlFor={`address-${v._id}`} className="mb-1 block text-xs font-semibold text-slate-600">Address</label>
                   <Textarea id={`address-${v._id}`} value={address} onChange={(e) => setAddress(e.target.value)} rows={3} required />
                 </div>
+                <div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 h-40 overflow-y-auto mb-2">
+                  <h4 className="font-bold mb-2">Buyer / Renter Terms</h4>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Renter must verify vehicle condition and paperwork before use.</li>
+                    <li>Traffic challans and damages during rental are renter's responsibility.</li>
+                    <li>Mandatory photo/video proof before and after the trip.</li>
+                  </ul>
+                </div>
                 <label className="flex items-start gap-2 cursor-pointer select-none">
                   <input
                     id={`booking-terms-${v._id}`}
@@ -220,9 +228,7 @@ export function BuyerBrowseVehicles() {
                     onChange={(e) => setBookingTermsAccepted(e.target.checked)}
                   />
                   <span className="text-sm text-slate-700">
-                    I agree to the{" "}
-                    <span className="font-semibold">Terms & Conditions</span>{" "}
-                    {v.termsAndConditions ? "listed above" : "of this vehicle rental"} and understand the booking policy.
+                    I have read and agree to all the Terms & Conditions.
                   </span>
                 </label>
                 <div className="flex gap-2">

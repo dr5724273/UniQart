@@ -59,7 +59,7 @@ export function AdminHistory() {
         <div>
           <div className="text-sm font-semibold">{item.vehicleId?.brand} {item.vehicleId?.model}</div>
           <div className="text-xs text-slate-600">
-            {new Date(item.pickupDate).toLocaleDateString()} → {new Date(item.returnDate).toLocaleDateString()}
+            {new Date(item.pickupDate).toLocaleString()} - {new Date(item.returnDate).toLocaleString()}
           </div>
           <div className="text-xs text-slate-600">Buyer: {item.buyerId?.name || "Unknown"}</div>
         </div>

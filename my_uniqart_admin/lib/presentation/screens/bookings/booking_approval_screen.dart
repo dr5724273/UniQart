@@ -156,7 +156,7 @@ class _BookingApprovalScreenState extends State<BookingApprovalScreen> {
       itemBuilder: (context, index) {
         final booking = provider.pendingBookings[index];
         final isProcessing = _processingIds.contains(booking.id);
-        final dateFormat = DateFormat('MMM dd, yyyy');
+        final dateFormat = DateFormat('MMM dd, yyyy hh:mm a');
 
         return Card(
           elevation: 2,

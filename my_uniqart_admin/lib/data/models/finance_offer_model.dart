@@ -5,6 +5,7 @@ class FinanceOfferModel extends FinanceOfferEntity {
     required super.id,
     required super.lenderName,
     required super.lenderEmail,
+    required super.lenderPhone,
     required super.totalAmount,
     required super.minLoan,
     required super.maxLoan,
@@ -19,11 +20,13 @@ class FinanceOfferModel extends FinanceOfferEntity {
   factory FinanceOfferModel.fromJson(Map<String, dynamic> json) {
     String lenderName = 'Unknown Lender';
     String lenderEmail = '';
+    String lenderPhone = '';
 
     if (json['lenderId'] is Map) {
       final lenderMap = json['lenderId'] as Map;
       lenderName = (lenderMap['name'] ?? 'Unknown Lender').toString();
       lenderEmail = (lenderMap['email'] ?? '').toString();
+      lenderPhone = (lenderMap['phone'] ?? '').toString();
     } else if (json['lenderName'] != null) {
       lenderName = json['lenderName'].toString();
     }
@@ -40,6 +43,7 @@ class FinanceOfferModel extends FinanceOfferEntity {
       id: (json['id'] ?? json['_id'] ?? '').toString(),
       lenderName: lenderName,
       lenderEmail: lenderEmail,
+      lenderPhone: lenderPhone,
       totalAmount: double.tryParse(json['totalAmount']?.toString() ?? '0') ?? 0.0,
       minLoan: double.tryParse(json['minLoan']?.toString() ?? '0') ?? 0.0,
       maxLoan: double.tryParse(json['maxLoan']?.toString() ?? '0') ?? 0.0,

@@ -46,8 +46,8 @@ export function ListerBookings() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-sm font-extrabold">{b.vehicleId?.brand} {b.vehicleId?.model}</div>
-                <div className="mt-1 text-sm text-slate-600">Buyer: {b.buyerId?.name} • Phone: {b.buyerId?.phone}</div>
-                <div className="mt-1 text-sm text-slate-600">{new Date(b.pickupDate).toLocaleDateString()} → {new Date(b.returnDate).toLocaleDateString()}</div>
+                <div className="mt-1 text-sm text-slate-600">Buyer: {b.buyerId?.name?.split(" ")[0] || "Buyer"}</div>
+                <div className="mt-1 text-sm text-slate-600">{new Date(b.pickupDate).toLocaleString()} - {new Date(b.returnDate).toLocaleString()}</div>
               </div>
               <StatusPill value={b.status} />
             </div>

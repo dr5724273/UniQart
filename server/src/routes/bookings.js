@@ -133,7 +133,7 @@ function bookingsRoutes(env) {
           .skip(skip)
           .limit(limit)
           .populate("vehicleId")
-          .populate("buyerId", "name email phone")
+          .populate("buyerId", "name")
           .lean(),
         Booking.countDocuments(filter)
       ]);

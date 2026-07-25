@@ -108,7 +108,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         id: v['_id']?.toString() ?? '',
         type: 'vehicle',
         title: '${v['year']} ${v['brand']} ${v['model']}',
-        subtitle: 'Lister: ${owner['name'] ?? 'Unknown'} (${owner['email'] ?? ''})',
+        subtitle: 'Lister: ${owner['name'] ?? 'Unknown'} (${owner['email'] ?? ''})${owner['phone'] != null && owner['phone'].toString().isNotEmpty ? ' - ${owner['phone']}' : ''}',
         status: v['status']?.toString() ?? '',
         adminNote: v['adminNote']?.toString(),
         publicNote: v['publicNote']?.toString(),
@@ -125,7 +125,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         id: f['_id']?.toString() ?? '',
         type: 'finance',
         title: '₹${f['totalAmount']} Finance Offer',
-        subtitle: 'Lender: ${lender['name'] ?? 'Unknown'} (${lender['email'] ?? ''})',
+        subtitle: 'Lender: ${lender['name'] ?? 'Unknown'} (${lender['email'] ?? ''})${lender['phone'] != null && lender['phone'].toString().isNotEmpty ? ' - ${lender['phone']}' : ''}',
         status: f['status']?.toString() ?? '',
         adminNote: f['adminNote']?.toString(),
         publicNote: f['publicNote']?.toString(),
@@ -143,7 +143,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         id: l['_id']?.toString() ?? '',
         type: 'loan',
         title: '₹${l['requestedAmount']} Loan Request',
-        subtitle: 'Buyer: ${buyer['name'] ?? 'Unknown'} | Lender: ${lender['name'] ?? 'Unknown'}',
+        subtitle: 'Buyer: ${buyer['name'] ?? 'Unknown'} (${buyer['email'] ?? ''})${buyer['phone'] != null && buyer['phone'].toString().isNotEmpty ? ' - ${buyer['phone']}' : ''} | Lender: ${lender['name'] ?? 'Unknown'} (${lender['email'] ?? ''})${lender['phone'] != null && lender['phone'].toString().isNotEmpty ? ' - ${lender['phone']}' : ''}',
         status: l['status']?.toString() ?? '',
         adminNote: l['adminNote']?.toString(),
         publicNote: l['publicNote']?.toString(),
@@ -157,11 +157,16 @@ class _HistoryScreenState extends State<HistoryScreen>
     return items.map((b) {
       final vehicle = b['vehicleId'] is Map ? b['vehicleId'] : {};
       final buyer = b['buyerId'] is Map ? b['buyerId'] : {};
+      final p = DateTime.tryParse(b['pickupDate']?.toString() ?? '')?.toLocal();
+      final r = DateTime.tryParse(b['returnDate']?.toString() ?? '')?.toLocal();
+      final durationStr = (p != null && r != null) 
+          ? '\n${DateFormat('MMM dd, yyyy hh:mm a').format(p)} → ${DateFormat('MMM dd, yyyy hh:mm a').format(r)}' 
+          : '';
       return HistoryItem(
         id: b['_id']?.toString() ?? '',
         type: 'booking',
         title: '${vehicle['brand'] ?? 'Unknown'} ${vehicle['model'] ?? ''} Booking',
-        subtitle: 'Buyer: ${buyer['name'] ?? 'Unknown'} (${buyer['email'] ?? ''})',
+        subtitle: 'Buyer: ${buyer['name'] ?? 'Unknown'} (${buyer['email'] ?? ''})${buyer['phone'] != null && buyer['phone'].toString().isNotEmpty ? ' - ${buyer['phone']}' : ''}$durationStr',
         status: b['status']?.toString() ?? '',
         adminNote: b['adminNote']?.toString(),
         publicNote: b['publicNote']?.toString(),

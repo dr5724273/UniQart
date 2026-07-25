@@ -218,7 +218,7 @@ class _VehicleApprovalScreenState extends State<VehicleApprovalScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${vehicle.ownerName} (${vehicle.ownerEmail})',
+                  '${vehicle.ownerName} (${vehicle.ownerEmail}) ${vehicle.ownerPhone.isNotEmpty ? "- ${vehicle.ownerPhone}" : ""}',
                   style: theme.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 20),

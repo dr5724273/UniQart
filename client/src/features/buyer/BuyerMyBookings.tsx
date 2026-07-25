@@ -46,7 +46,7 @@ export function BuyerMyBookings() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-sm font-extrabold">{b.vehicleId?.brand} {b.vehicleId?.model}</div>
-                <div className="mt-1 text-sm text-slate-600">{new Date(b.pickupDate).toLocaleDateString()} → {new Date(b.returnDate).toLocaleDateString()}</div>
+                <div className="mt-1 text-sm text-slate-600">{new Date(b.pickupDate).toLocaleString()} - {new Date(b.returnDate).toLocaleString()}</div>
               </div>
               <StatusPill value={b.status} />
             </div>
