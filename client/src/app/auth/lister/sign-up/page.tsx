@@ -41,8 +41,8 @@ export default function ListerSignUp() {
   return (
     <main className="container-page py-10">
       <Card className="mx-auto max-w-md">
-        <h1 className="text-xl font-extrabold">Lister Sign Up</h1>
-        <p className="mt-1 text-sm text-slate-600">Phone number is mandatory.</p>
+        <h1 className="text-xl font-extrabold">Become a partner</h1>
+        <p className="mt-1 text-sm text-slate-600">Create your account to list vehicles or offer finance. Add a phone number for updates about your listings.</p>
         <form className="mt-6 grid gap-3" onSubmit={onSubmit} aria-label="Lister sign up form">
           <div>
             <label htmlFor="lister-name" className="mb-1 block text-xs font-semibold text-slate-600">Full name</label>
