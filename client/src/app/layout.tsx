@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ModeProvider>
           <AuthProvider>
             <Navbar />
-            {children}
+            <div id="page-content" tabIndex={-1}>{children}</div>
           </AuthProvider>
         </ModeProvider>
       </body>
