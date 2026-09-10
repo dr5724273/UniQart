@@ -38,7 +38,7 @@ export default function BuyerSignIn() {
   return (
     <main className="container-page py-10">
       <Card className="mx-auto max-w-md">
-        <h1 className="text-xl font-extrabold">Buyer Sign In</h1>
+        <h1 className="text-xl font-extrabold">Welcome back</h1>
         <p className="mt-1 text-sm text-slate-600">Rent vehicles or apply for loans.</p>
         <form className="mt-6 grid gap-3" onSubmit={onSubmit} aria-label="Buyer sign in form">
           <div>
