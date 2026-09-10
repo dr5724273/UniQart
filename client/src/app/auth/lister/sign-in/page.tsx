@@ -38,7 +38,7 @@ export default function ListerSignIn() {
   return (
     <main className="container-page py-10">
       <Card className="mx-auto max-w-md">
-        <h1 className="text-xl font-extrabold">Lister Sign In</h1>
+        <h1 className="text-xl font-extrabold">Partner sign in</h1>
         <p className="mt-1 text-sm text-slate-600">List vehicles or offer finance.</p>
         <form className="mt-6 grid gap-3" onSubmit={onSubmit} aria-label="Lister sign in form">
           <div>
