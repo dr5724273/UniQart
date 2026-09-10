@@ -41,8 +41,8 @@ export default function BuyerSignUp() {
   return (
     <main className="container-page py-10">
       <Card className="mx-auto max-w-md">
-        <h1 className="text-xl font-extrabold">Buyer Sign Up</h1>
-        <p className="mt-1 text-sm text-slate-600">Phone number is mandatory.</p>
+        <h1 className="text-xl font-extrabold">Create your account</h1>
+        <p className="mt-1 text-sm text-slate-600">One account for car rentals, bike rentals, and finance. Add your phone number so we can contact you about your requests.</p>
         <form className="mt-6 grid gap-3" onSubmit={onSubmit} aria-label="Buyer sign up form">
           <div>
             <label htmlFor="buyer-name" className="mb-1 block text-xs font-semibold text-slate-600">Full name</label>
