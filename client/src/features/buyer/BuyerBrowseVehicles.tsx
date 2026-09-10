@@ -42,7 +42,7 @@ export function BuyerBrowseVehicles() {
 
   const bookingValid = pickupValid && returnValid && dateRangeValid && !hasOverlap && address.trim().length > 0 && bookingTermsAccepted;
 
-  async function load() {
+  async function load(selectedType = vehicleType) {
     if (minPrice && maxPrice && Number(minPrice) > Number(maxPrice)) {
       setError("Min price cannot exceed Max price.");
       return;
@@ -52,7 +52,7 @@ export function BuyerBrowseVehicles() {
     try {
       const params = new URLSearchParams();
       if (city) params.set("city", city);
-      if (vehicleType) params.set("vehicleType", vehicleType);
+      if (selectedType) params.set("vehicleType", selectedType);
       if (brand) params.set("brand", brand);
       if (minPrice) params.set("minPrice", minPrice);
       if (maxPrice) params.set("maxPrice", maxPrice);
@@ -67,7 +67,10 @@ export function BuyerBrowseVehicles() {
   }
 
   useEffect(() => {
-    void load();
+    const preferredType = window.sessionStorage.getItem("uniqart_vehicle_type");
+    const initialType = preferredType === "car" || preferredType === "bike" ? preferredType : "";
+    setVehicleType(initialType);
+    void load(initialType);
   }, []);
 
   async function openBookingForm(vehicleId: string) {
@@ -120,7 +123,11 @@ export function BuyerBrowseVehicles() {
           </div>
           <div>
             <label htmlFor="filter-type" className="mb-1 block text-xs font-semibold text-slate-600">Vehicle Type</label>
-            <Select id="filter-type" value={vehicleType} onChange={(e) => setVehicleType(e.target.value as any)}>
+            <Select id="filter-type" value={vehicleType} onChange={(e) => {
+              const nextType = e.target.value as "" | "car" | "bike";
+              setVehicleType(nextType);
+              window.sessionStorage.setItem("uniqart_vehicle_type", nextType);
+            }}>
               <option value="">All</option>
               <option value="car">Car</option>
               <option value="bike">Bike</option>
