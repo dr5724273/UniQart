@@ -5,12 +5,15 @@ import { ModeProvider } from "@/context/ModeContext";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
-  title: "MyUniQart — Rental & Finance Marketplace",
-  description: "Rent Vehicles • Get Finance • Lend Money — All in One Trusted Marketplace",
+  metadataBase: new URL("https://www.myuniqart.com"),
+  title: "UniQart | Car & Bike Rentals, Finance in Kharar & Gharaun",
+  description: "Explore car rentals, bikes on rent and finance offers in Kharar and Gharaun with UniQart (MyUniQart). Review vehicle prices, loan terms and availability.",
   openGraph: {
-    title: "MyUniQart — Rental & Finance Marketplace",
-    description: "Rent Vehicles • Get Finance • Lend Money — All in One Trusted Marketplace",
-    siteName: "MyUniQart"
+    title: "UniQart | Car & Bike Rentals, Finance in Kharar & Gharaun",
+    description: "Find a car or bike on rent and explore finance offers in Kharar and Gharaun with MyUniQart.",
+    siteName: "MyUniQart",
+    type: "website",
+    locale: "en_IN"
   },
   manifest: "/manifest.json"
 };
